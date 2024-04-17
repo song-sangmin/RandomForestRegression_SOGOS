@@ -1,6 +1,6 @@
 # Random Forest Regression on multi-platform, in-situ ocean observations
 
-Paper in submission to AMS Artifical Intelligence in Earth Sciences (AIES) journal, pending review. 
+Paper in submission to AMS Artifical Intelligence in Earth Sciences (AIES) journal, pending review. [pre-print manuscript available by request]
 
 Contact: Song Sangmin <sangsong@uw.edu> <github: song-sangmin>
 University of Washington, School of Oceanography
