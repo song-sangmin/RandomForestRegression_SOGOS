@@ -14,7 +14,7 @@ Last updated: Apr 16 2023
 
 ### Motivation / Research Abstract 
 
-Nutrient cycling in the ocean is mediated by physical mixing processes that span diverse spatial and temporal scales. New biogeochemical profiling floats (BGC-Argo) have begun to collect nutrient data on a global scale, but their 10-day cycling period limits what processes they capture. Small-scale dynamics, occurring on $\mathcal{O}$(1) day and $\mathcal{O}$(1) km, remain particularly difficult to observe in-situ. Here, we demonstrate that a Random Forest machine learning approach can recover high-frequency information by bridging the sampling strategies of different ocean profilers. Our regressor is trained and tested on BGC-Argo data to within $\sim$3% accuracy, then applied to observations from two rapid-sampling Seagliders deployed during the Southern Ocean Glider Observations of the Submesoscale (SOGOS) experiment in 2019. This approach generates novel nitrate distributions at 50 times the horizontal resolution of original float data. Using the high-resolution outputs, we then identify signatures of biogeochemical tracer injection that coincide with enhanced stirring in a turbulent region downstream of the Southwest Indian Ridge. These intermittent transport events occur during a period of increased nutrient drawdown and primary production. By synthesizing information from multiple platforms, Random Forest extends the capabilities of the global BGC-Argo array and allows for deeper understanding of biogeochemical cycling across scales. We present Random Forest regression as a powerful and accessible tool that can be generalized to suit various observing systems.
+Nutrient cycling in the ocean is mediated by physical mixing processes that span diverse spatial and temporal scales. New biogeochemical profiling floats (BGC-Argo) have begun to collect nutrient data on a global scale, but their 10-day cycling period limits what processes they capture. Small-scale dynamics, occurring on $\mathcal{O}$(1) day and $\mathcal{O}$(1) km, remain particularly difficult to observe in-situ. Here, we demonstrate that a Random Forest machine learning approach can recover high-frequency information by bridging the sampling strategies of different ocean profilers. Our regressor is trained and tested on BGC-Argo data to within approx. 3% accuracy, then applied to observations from two rapid-sampling Seagliders deployed during the Southern Ocean Glider Observations of the Submesoscale (SOGOS) experiment in 2019. This approach generates novel nitrate distributions at 50 times the horizontal resolution of original float data. Using the high-resolution outputs, we then identify signatures of biogeochemical tracer injection that coincide with enhanced stirring in a turbulent region downstream of the Southwest Indian Ridge. These intermittent transport events occur during a period of increased nutrient drawdown and primary production. By synthesizing information from multiple platforms, Random Forest extends the capabilities of the global BGC-Argo array and allows for deeper understanding of biogeochemical cycling across scales. We present Random Forest regression as a powerful and accessible tool that can be generalized to suit various observing systems.
 
 
 
@@ -33,7 +33,7 @@ These should ideally be run in the following order:
 
 - The testing phase uses withheld float data from the SOGOS BGC-Argo float to estimate the model error. We also compare performance with two well-established machine learning models, ESPER-Mixed and CANYON-B, which both rely on neural networks. 
 
-- 
+
 
 2. Random Forest Analysis: `scripts/Analysis_RandomForest.ipynb`
 
@@ -49,7 +49,7 @@ These should ideally be run in the following order:
 
 Some major functions are stored in modules, which are used to control processing functions that may be needed across scripts. 
 
-- *Modules*:`sgmod_[purpose].py`: 
+- *Modules*: `sgmod_[purpose].py`: 
 
 
                 sgmod_main      as sg             Common glider functions
@@ -74,12 +74,12 @@ Some major functions are stored in modules, which are used to control processing
 ### Naming Conventions
 
  
-*Glider:*    
+- *Glider:*    
                 dav_659                         Profiles-averaged metrics, incl. MLD
                 df_659                          Flattened dataframe
                 profid                          Unique name for each profile
 
-*Floats:*    
+- *Floats:*    
                 dav_659                         Profile-averaged metrics, incl. MLD
                 df_659                          Flattened dataframe
                 wmoid                           Unique name for each float WMO#
@@ -89,7 +89,7 @@ Some major functions are stored in modules, which are used to control processing
 
 ### Data Sources
 
-
+<!-- 
 - [Link to gridded variables](https://uwnetid-my.sharepoint.com/:f:/g/personal/sangsong_uw_edu/Et5YKAWyry5KkSst28_unxsBE3Vc5TCbOGl-3lR4sTvSQQ?email=joycecai%40uw.edu&e=einIE4)
 
                 - `gp_659_forMLGeo1026.nc`  (pressure-gridded 1m, glider #659)
@@ -100,7 +100,7 @@ Some major functions are stored in modules, which are used to control processing
 
                 - 'fsle_backwards.nc'           (1-day FSLE from AVISO)
                 - 'satellite_data.nc'           (ADT product from AVISO)
-
+ -->
 
 
 - [Link to float data](https://uwnetid-my.sharepoint.com/:f:/g/personal/sangsong_uw_edu/Es-ESkVfIlpHhpFq7o5LTaoBtqv6pWj6rntxMyXieLEq8A?e=FeRRjs)
@@ -114,7 +114,7 @@ Some major functions are stored in modules, which are used to control processing
 - [Link to ship data](https://uwnetid-my.sharepoint.com/:f:/g/personal/sangsong_uw_edu/ErLtPwS6pdZClgo0Flp9lq8Bz73FRmUlhR2zf329gDH-3w?e=hCzidh)
 - [GO-SHIP I6 Cruise Line Bottle Data](https://cchdo.ucsd.edu/cruise/325020190403)
 - Description of glider data variables are in `Seaglider_DataGuide.pdf`
-- Description of Argo float and ship are in first paper from SOGOS program: [Link to Dove (2021)]https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2021JC017178)
+- Description of Argo float and ship are in first paper from SOGOS program: [Link to Dove et. al. (2021)](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2021JC017178)
 
 
 
