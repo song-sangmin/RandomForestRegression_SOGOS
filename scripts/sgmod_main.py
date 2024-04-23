@@ -12,18 +12,6 @@ import scipy
 import geopy.distance
 
 
-""" Import satellite data and FSLE"""
-
-file_path = '/Users/sangminsong/Library/CloudStorage/OneDrive-UW/Code/SOGOS/gridded-vars/'
-fsle = xr.open_dataset(file_path + 'fsle_backwards.nc')
-adt = xr.open_dataset(file_path + 'satellite_data.nc')
-
-# %% Clean data 
-
-# gi_659.CT.attrs = {"units": "degrees C"}
-# gi_659.pH.attrs = {"units": ""}
-
-
 # %% Common functions for operating on arrays 
 
 def datetime2ytd(time):
@@ -34,33 +22,14 @@ def ytd2datetime(num):
     """" Return datetime format to YTD in 2019."""
     return (num * np.timedelta64(1,'D')) + np.datetime64('2019-01-01')
 
-def get_month_number(yearday):
-    if (yearday < 0) & (yearday > -365):
-        yearday = 365+yearday
-    if yearday < -365:
-        yearday = 365*2 + yearday
-    if yearday >= 365:
-        yearday = yearday % 365
-
-    # days_in_month = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    # monthdays = np.cumsum(days_in_month)
-    monthdays = np.array([0,  31,  59,  90, 120, 151, 181, 212, 243, 273, 304, 334, 366])
-    month_number = np.where(monthdays < yearday)[0].max() + 1
-    return month_number
-
 def get_ydsines(yearday):
+    """ For adding seasonal variable in Training_RandomForest.ipynb"""
     if (yearday < 0) & (yearday > -365):
         yearday = 365+yearday
     if yearday < -365:
         yearday = 365*2 + yearday
     if yearday >= 365:
         yearday = yearday % 365
-
-    # days_in_month = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    # monthdays = np.cumsum(days_in_month)
-    # monthdays = np.array([0,  31,  59,  90, 120, 151, 181, 212, 243, 273, 304, 334, 366])
-    # month_number = np.where(monthdays < yearday)[0].max() + 1
-
     ydcos = np.cos(2*np.pi*np.array(yearday)/365)
     ydsin = np.sin(2*np.pi*np.array(yearday)/365)
 
@@ -92,16 +61,16 @@ def print_sorted(dict):
 
 # %% Add information on vertical resolution
 
-def list_profile_DFs(df):
+def list_profile_DFs(platdf):
     """ 
     COPIED FROM DFPROC
     @param df: dataframe with all profiles
     @return: list of dataframes, each with a unique profile
     """
-    profids = pd.unique(df.profid)
+    profids = pd.unique(platdf.profid)
     profile_DFs = []
     for i in range(len(profids)):
-        profile_DFs.append(df[df['profid']==profids[i]].copy())
+        profile_DFs.append(platdf[platdf['profid']==profids[i]].copy())
     return profile_DFs
 
 
@@ -145,38 +114,8 @@ def print_profile_nobs(platDF):
     print('Average # obs in a profile reaching >900m: \t' + str(np.mean(proflens)))
 
 
-# %% Calculate depth from pressure
+# %% Add functions for scaling features
 
-# def p2depth(pres,lat):
-
-
-# import matplotlib.pyplot as plt
-
-
-# size = 32
-# params = {'legend.fontsize': size, 
-#           'xtick.labelsize':size, 
-#           'ytick.labelsize':size, 
-#           'font.size':size,
-#           'font.family':'Arial'}
-# plt.rcParams.update(params)
-
-
-# def plot_var(g3_glider, var='SA'):
-#     """"
-#     Quick plot for single variable, for troubleshooting code.
-#     @param      gp_glider: gridded dataset
-#                 var: Options are 'SA', 'CT', 'oxygen', 'AOU', 'spice'"""
-    
-#     fig = plt.figure(figsize=(8,4))
-#     ax = fig.gca()
-#     plt.plot(data.datetime, data.temperature, marker='o', linewidth=0, color='blue', label='Temperature')
-#     plt.legend()
-
-#     ax.invert_yaxis()
-#     ax.set_xlabel('profile number')
-
-# # 
 def scale_features(df, training, type='StandardScaler'):
     """ Scale down glider dataset.
     @param: df: dataframe to scale

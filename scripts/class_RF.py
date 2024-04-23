@@ -96,6 +96,28 @@ def get_depth_bias(data, ranges, var='val_error'):
     return {f"{start}-{end}": data[(data["pressure"] >= start) & (data["pressure"] < end)][var].values
             for start, end in ranges}
 
+def print_errors(data, var ='test_relative_error', pres_lim= [0,1000]):
+    """ 
+    @ param: data:  dataset that has "test_relative_error" in it
+    """
+    data = data[(data.pressure > pres_lim[0]) & (data.pressure < pres_lim[1])]
+    err = data[var]
+    print('Error metric: ' + var)
+    print('Restricted to depths ' + str(pres_lim[0]) + ' to ' + str(pres_lim[1]) + ':')
+    print('median abs error: \t' + str(np.abs(err).median()))
+    print('mean abs error \t\t' + str(np.abs(err).mean()))
+
+    # Bounds 95
+    [low, high] = get_95_bounds(err)
+    print('\n95% of errors fall between:')
+    print(str(low.round(5)) + ' to ' + str(high.round(5)) )
+
+    err = data[data.yearday <200][var]
+    [low, high] = get_95_bounds(err)
+    print("\nDuring SOGOS between depths " + str(pres_lim[0]) + ' to ' + str(pres_lim[1]) + ':')
+    print('95% of errors fall between:')
+    print(str(low.round(5)) + ' to ' + str(high.round(5)) )
+
 
 # %% Classes for storing model results
 
@@ -123,29 +145,7 @@ class ModelVersion:
     def copy(self):
         return self
 
-    def print_errors(self, ind, var ='test_relative_error', pres_lim= [0,1000]):
-        if 'test' in var:
-            data = self.DF_err[ind]
-        elif 'val' in var:
-            data = self.val_err[ind]
 
-        data = data[(data.pressure > pres_lim[0]) & (data.pressure < pres_lim[1])]
-        err = data[var]
-        print('Error metric: ' + var)
-        print('Restricted to depths ' + str(pres_lim[0]) + ' to ' + str(pres_lim[1]) + ':')
-        print('median abs error: \t' + str(np.abs(err).median()))
-        print('mean abs error \t\t' + str(np.abs(err).mean()))
-
-        # Bounds 95
-        [low, high] = get_95_bounds(err)
-        print('\n95% of errors fall between:')
-        print(str(low.round(5)) + ' to ' + str(high.round(5)) )
-
-        err = data[data.yearday <200][var]
-        [low, high] = get_95_bounds(err)
-        print("\nDuring SOGOS between depths " + str(pres_lim[0]) + ' to ' + str(pres_lim[1]) + ':')
-        print('95% of errors fall between:')
-        print(str(low.round(5)) + ' to ' + str(high.round(5)) )
 
     
     def get_metrics(self):
@@ -195,8 +195,11 @@ class ModelVersion:
 
 class CrossVal_KFold:
     """ 
-     Larger object containing KFolds information across all models in model_list
+     Larger object containing CV information across all models in model_list
      (indexed by model, e.g. 'Model_X')
+     During k-fold, we combine errors across folds for each model, 
+     such that we add 10% of validation errors from each fold,
+     (represent 100% of training data)
     """
     def __init__(self, model_list):
         self.model_list = model_list

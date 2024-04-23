@@ -9,10 +9,11 @@ from datetime import datetime
 import scipy
 # import glidertools as gt
 import importlib as lib
-
 import sgmod_main as sg
+import seaborn as sns
 
-size = 32
+size = 16
+plt.style.use('default')
 params = {'legend.fontsize': size, 
           'xtick.labelsize':size, 
           'ytick.labelsize':size, 
@@ -20,26 +21,51 @@ params = {'legend.fontsize': size,
           'font.family':'Futura'}
 plt.rcParams.update(params)
 
-# plt.rcParams['font.size'] = '12'
-# plt.rcParams['font.family'] = 'Futura'
+# Make Model palettes (mod April 2024)
+model_palettes = {}
+model_palettes['Model_A'] = sns.color_palette('Purples')[3] #change for figures
+model_palettes['Model_B'] = sns.color_palette('Reds')[4]
+model_palettes['Model_C'] = sns.color_palette('Set2')[4]
+ 
+model_palettes['Model_D'] = sns.color_palette('Blues')[4]
+model_palettes['Model_E'] = sns.color_palette('Set2')[1] 
+model_palettes['Model_F'] = sns.color_palette('Set2')[0]
+model_palettes['Model_G'] = sns.color_palette('RdPu')[5]
 
-lims = {"SA" : [33.5, 35],
-       "CT" : [1, 3.5],
-       "oxygen" : [150, 350],
-       "oxy_tcorr" : [150, 350],
-    #    "Chl" : [0, 0.6],
-       "AOU" : [10, 120],
-       "pH" : [7.63, 8.0],
-       "TA" : [2280, 2387],}
 
-palettes = {'SA': cmo.haline, 
-        'CT': cmo.thermal, 
-        'oxygen': cmo.ice, 
-        'oxy_tcorr': cmo.ice, 
-        # 'Chl': cmo.algae,
-        'AOU': cmo.amp, 
-        'nitrate': cmo.deep, 
-        'TA': cmo.tempo}
+# Set glider plotting
+plat_colors = dict({'sg659':'#33BBEE', 'sg660':'#EE3377', 'float':'#CCBB44'})
+
+# Set up WMO color palette
+wmo_colors = {}
+wmo_colors[5904469]=sns.color_palette("RdPu")[4]
+wmo_colors[5904659]=sns.color_palette("Purples")[4]
+wmo_colors[5905368]=sns.color_palette("Paired")[1]
+wmo_colors[5905996]=sns.color_palette("YlGn")[3]
+wmo_colors[5906030]='k' # sns.color_palette("Reds")[3]  # SOGOS 
+wmo_colors[5906030]='k' 
+wmo_colors[5906031]=sns.color_palette("Blues")[2]
+wmo_colors[5906207]=sns.color_palette("Reds")[4]
+wmo_colors[5906007]= sns.color_palette("YlOrRd")[3]
+
+
+# lims = {"SA" : [33.5, 35],
+#        "CT" : [1, 3.5],
+#        "oxygen" : [150, 350],
+#        "oxy_tcorr" : [150, 350],
+#     #    "Chl" : [0, 0.6],
+#        "AOU" : [10, 120],
+#        "pH" : [7.63, 8.0],
+#        "TA" : [2280, 2387],}
+
+# palettes = {'SA': cmo.haline, 
+#         'CT': cmo.thermal, 
+#         'oxygen': cmo.ice, 
+#         'oxy_tcorr': cmo.ice, 
+#         # 'Chl': cmo.algae,
+#         'AOU': cmo.amp, 
+#         'nitrate': cmo.deep, 
+#         'TA': cmo.tempo}
 
 #%% Isopycnals
 
