@@ -41,8 +41,9 @@ for modtag in model_list:
 
 # Download cross validation 
 dir = '../working-vars/RF-crossval/'
-RF_loo = pd.read_csv(dir + 'loo_all_metrics_full.csv')
-RF_kfold = pd.read_csv(dir + 'kfold_all_metrics_full.csv')
+RF_loo = pd.read_csv(dir + 'loo_metrics_byModel.csv')
+RF_loo_WMO = pd.read_csv(dir + 'loo_metrics_byWMO.csv')
+RF_kfold = pd.read_csv(dir + 'kfold_metrics_byModel.csv')
 
 # NN Comparisos
 RF_pred_6030 = pd.read_csv('../working-vars/RF-training/mlresult_sgfloat_allpreds_full.csv')

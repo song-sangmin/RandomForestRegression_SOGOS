@@ -11,6 +11,8 @@ import seaborn
 import scipy
 import geopy.distance
 
+import mod_DFproc as dfproc
+
 # %% Data
 
 
@@ -27,18 +29,44 @@ sg660 = pd.read_csv('../data/glider/sg660_tsO2corr.csv')
 # df_660 = pd.read_csv('../data/glider/mldata_sg660.csv')
 df_659 = pd.read_csv('../working-vars/RF-glider/mlpred_sg659_G.csv') # fixed
 df_660 = pd.read_csv('../working-vars/RF-glider/mlpred_sg660_G.csv')
-dav_659 = pd.read_csv('../data/glider/dav_660_may24.csv')  
-dav_660 = pd.read_csv('../data/glider/dav_660_may24.csv')
+# good for sure, but use EKE -- se Data Log
+# dav_659 = pd.read_csv('../data/glider/dav_659_may24.csv')  
+# dav_660 = pd.read_csv('../data/glider/dav_660_may24.csv')
+dav_659 = pd.read_csv('../data/glider/dav_659_EKEPAR.csv')  
+dav_660 = pd.read_csv('../data/glider/dav_660_EKEPAR.csv')
 
 # Float data: 
 floatDF = pd.read_csv('../data/bgc-argo/mldata_floatDF_qc.csv')
 sgfloat = floatDF[(floatDF.yearday<205) & (floatDF.wmoid==5906030)]
 # Full float 6030, for long time series MLD
 dav_6030 = pd.read_csv('../data/bgc-argo/dav_full6030_noqc.csv')
-dav_float = dav_6030[dav_6030.yearday<210]
+# good for sure, but use EKE -- se Data Log
+# dav_float = dav_6030[dav_6030.yearday<210]
+dav_float = pd.read_csv('../data/bgc-argo/dav_sgfloat_EKEPAR.csv')
 
 # Ship data:
 shipDF = pd.read_csv('../data/go-ship/mldata_shipDF_qc.csv') 
+
+# # Satellite data:
+altimetry = xr.open_dataset('../data/satellite/cmems_obs-sl_glo_phy-ssh_my_allsat-l4-duacs-0.25deg_P1D_1714604183615.nc')
+altimetry['eke'] = np.sqrt(altimetry.ugosa**2 + altimetry.vgosa**2)
+
+# # EKE data
+# datestart='2019-04-30'
+# dateend='2019-07-25'
+# dateend='2021-07-25'
+# lat1=-56.8; lat2=-43
+# lon1=19; lon2=41
+# data_sat = altimetry.sel(time=slice(datestart, dateend))
+# data_sat = data_sat.sel(latitude=slice(lat1, lat2))
+# data_sat = data_sat.sel(longitude=slice(lon1, lon2))
+
+# dav_659['eke'] = dfproc.get_track_eke(dav_659, data_sat, daily=True)
+# dav_660['eke']= dfproc.get_track_eke(dav_660, data_sat, daily=True)
+# # dav_659['eke_avg'] = dfproc.get_track_eke(dav_659, data_sat, daily=False)
+# # dav_660['eke_avg']= dfproc.get_track_eke(dav_660, data_sat, daily=False)
+# dav_float['eke'] = dfproc.get_track_eke(dav_660, data_sat, daily=True)
+
 
 
 # %% Common functions for operating on arrays 
@@ -223,102 +251,102 @@ def rescale_target(scaled_pred, unscaled_obs, type='Standard Scaler'):
     return rescaled
 
 
-# 3.0.2 Train RF model
-var_predict = 'nitrate'
+# # 3.0.2 Train RF model
+# var_predict = 'nitrate'
 
-def train_RF(var_list, training, validation, test, ntrees=1000, max_feats = 'sqrt', scaler='MinMaxScaler', scale_target = True):
-    """ 
-    Main method to train the RF model.
-    Scaling of datasets to between 0 and 1 is done internally within the method
-    @param: 
-        var_list: list of variables to use in the model
-        training: training data unscaled, i.e. original range of values
-        validation: validation data unscaled
-        test: test data unscaled 
-        ntrees: 1000 trees by default.
+# def train_RF(var_list, training, validation, test, ntrees=1000, max_feats = 'sqrt', scaler='MinMaxScaler', scale_target = True):
+#     """ 
+#     Main method to train the RF model.
+#     Scaling of datasets to between 0 and 1 is done internally within the method
+#     @param: 
+#         var_list: list of variables to use in the model
+#         training: training data unscaled, i.e. original range of values
+#         validation: validation data unscaled
+#         test: test data unscaled 
+#         ntrees: 1000 trees by default.
 
-    @return:
-        Mdl: trained RF model
-        Mdl_MAE: Rescaled mean absolute error for training, validation, and test sets
-        Mdl_IQR: Rescaled IQR for training, validation, and test sets
-        DF_with_error: Rescaled dataframe with error metrics for the *TEST* set
-    """
+#     @return:
+#         Mdl: trained RF model
+#         Mdl_MAE: Rescaled mean absolute error for training, validation, and test sets
+#         Mdl_IQR: Rescaled IQR for training, validation, and test sets
+#         DF_with_error: Rescaled dataframe with error metrics for the *TEST* set
+#     """
 
-    Mdl = RandomForestRegressor(ntrees, max_features = max_feats, random_state = 0, bootstrap=False)
-        #  max_features: use at most X features at each split (m~sqrt(total features)). ISSR.
-        #  bootstrapping: *** Should be FALSE for geospatial data.
+#     Mdl = RandomForestRegressor(ntrees, max_features = max_feats, random_state = 0, bootstrap=False)
+#         #  max_features: use at most X features at each split (m~sqrt(total features)). ISSR.
+#         #  bootstrapping: *** Should be FALSE for geospatial data.
 
-    # Drop NaN's without profid or wmoid
-    cols_na = [col for col in training.columns if col not in ['profid', 'wmoid']]
-    training_nona = training.dropna(axis=0, subset=cols_na)  # makes same length as training_scaled
-    validation_nona = validation.dropna(axis=0, subset=cols_na)
-    test_nona = test.dropna(axis=0, subset=cols_na)
+#     # Drop NaN's without profid or wmoid
+#     cols_na = [col for col in training.columns if col not in ['profid', 'wmoid']]
+#     training_nona = training.dropna(axis=0, subset=cols_na)  # makes same length as training_scaled
+#     validation_nona = validation.dropna(axis=0, subset=cols_na)
+#     test_nona = test.dropna(axis=0, subset=cols_na)
 
-    # Scale features using the specified 'type' for each subset of data
-    # Method drops Nan's
-    [training_scaled, validation_scaled, test_scaled] = scale_down_tvt(training_nona, validation, test, type=scaler)
+#     # Scale features using the specified 'type' for each subset of data
+#     # Method drops Nan's
+#     [training_scaled, validation_scaled, test_scaled] = scale_down_tvt(training_nona, validation, test, type=scaler)
 
-    # if old way is correct:
-    # training_scaled = scale_features(training, type=scaler)
-    # validation_scaled = scale_features(validation, type=scaler)
-    # test_scaled = scale_features(test, type=scaler)
+#     # if old way is correct:
+#     # training_scaled = scale_features(training, type=scaler)
+#     # validation_scaled = scale_features(validation, type=scaler)
+#     # test_scaled = scale_features(test, type=scaler)
 
-    # Create X Variables for each subset of data. Scale down. 
-    X_training = training_scaled[var_list].to_numpy()
-    X_validation = validation_scaled[var_list].to_numpy()
-    X_test = test_scaled[var_list].to_numpy()
+#     # Create X Variables for each subset of data. Scale down. 
+#     X_training = training_scaled[var_list].to_numpy()
+#     X_validation = validation_scaled[var_list].to_numpy()
+#     X_test = test_scaled[var_list].to_numpy()
 
-    if scale_target == True:
-        Y_training = training_scaled[var_predict].to_numpy()
-        Y_validation = validation_scaled[var_predict].to_numpy()
-        Y_test = test_scaled[var_predict].to_numpy()    ### Can also leave target nitrate unscaled. change test_scaled to test
-    else:
-        Y_training = training_nona[var_predict].to_numpy()
-        Y_validation = validation_nona[var_predict].to_numpy()
-        Y_test = test_nona[var_predict].to_numpy()    ### Can also leave target nitrate unscaled. change test_scaled to test
-
-
-    # Train the model
-    Mdl.fit(X_training, Y_training)
-
-    # Estimate
-    Y_pred_training = Mdl.predict(X_training)
-    Y_pred_validation = Mdl.predict(X_validation)
-    Y_pred_test = Mdl.predict(X_test)
-
-    if scale_target == True:
-        Y_pred_training = rescale_target(Y_pred_training, training_nona[var_predict], type=scaler) # Rescale the predicted nitrate
-        Y_pred_validation = rescale_target(Y_pred_validation, training_nona[var_predict], type=scaler) # Rescale the predicted nitrate
-        Y_pred_test = rescale_target(Y_pred_test, training_nona[var_predict], type=scaler) # Rescale the predicted nitrate
-    # changed from rescale_var to rescale_target for using only the training scaler. 
+#     if scale_target == True:
+#         Y_training = training_scaled[var_predict].to_numpy()
+#         Y_validation = validation_scaled[var_predict].to_numpy()
+#         Y_test = test_scaled[var_predict].to_numpy()    ### Can also leave target nitrate unscaled. change test_scaled to test
+#     else:
+#         Y_training = training_nona[var_predict].to_numpy()
+#         Y_validation = validation_nona[var_predict].to_numpy()
+#         Y_test = test_nona[var_predict].to_numpy()    ### Can also leave target nitrate unscaled. change test_scaled to test
 
 
-    # Create dataframe for the test set with depth --> 
-    DF_with_error = test_nona.copy(); 
-    DF_with_error = DF_with_error.reset_index(drop=True)
-    observed_nitrate = DF_with_error[var_predict].to_numpy()
+#     # Train the model
+#     Mdl.fit(X_training, Y_training)
 
-    # Save new dataframe with test results
-    DF_with_error['test_prediction'] = Y_pred_test
-    DF_with_error['test_error'] = DF_with_error['test_prediction'] - observed_nitrate
-    DF_with_error['test_relative_error'] = DF_with_error['test_error']/observed_nitrate
+#     # Estimate
+#     Y_pred_training = Mdl.predict(X_training)
+#     Y_pred_validation = Mdl.predict(X_validation)
+#     Y_pred_test = Mdl.predict(X_test)
 
-    # Error metrics
-    AE_RF_training = np.abs(Y_pred_training - training_nona[var_predict])
-    IQR_RF_training = iqr(abs(AE_RF_training))
-    r2_RF_training = r2_score(training_nona[var_predict], Y_pred_training)
+#     if scale_target == True:
+#         Y_pred_training = rescale_target(Y_pred_training, training_nona[var_predict], type=scaler) # Rescale the predicted nitrate
+#         Y_pred_validation = rescale_target(Y_pred_validation, training_nona[var_predict], type=scaler) # Rescale the predicted nitrate
+#         Y_pred_test = rescale_target(Y_pred_test, training_nona[var_predict], type=scaler) # Rescale the predicted nitrate
+#     # changed from rescale_var to rescale_target for using only the training scaler. 
 
-    AE_RF_validation = np.abs(Y_pred_validation - validation_nona[var_predict])
-    IQR_RF_validation = iqr(abs(AE_RF_validation))
-    r2_RF_validation = r2_score(validation_nona[var_predict], Y_pred_validation)
 
-    AE_RF_test = np.abs(Y_pred_test - test_nona[var_predict])
-    IQR_RF_test = iqr(abs(AE_RF_test))
-    r2_RF_test = r2_score(test_nona[var_predict], Y_pred_test)
+#     # Create dataframe for the test set with depth --> 
+#     DF_with_error = test_nona.copy(); 
+#     DF_with_error = DF_with_error.reset_index(drop=True)
+#     observed_nitrate = DF_with_error[var_predict].to_numpy()
 
-    Mdl_MAE = [np.nanmedian(abs(AE_RF_training)), np.nanmedian(abs(AE_RF_validation)), np.nanmedian(abs(AE_RF_test))]
-    Mdl_IQR = [IQR_RF_training, IQR_RF_validation, IQR_RF_test]
-    Mdl_r2 = [r2_RF_training, r2_RF_validation, r2_RF_test]
+#     # Save new dataframe with test results
+#     DF_with_error['test_prediction'] = Y_pred_test
+#     DF_with_error['test_error'] = DF_with_error['test_prediction'] - observed_nitrate
+#     DF_with_error['test_relative_error'] = DF_with_error['test_error']/observed_nitrate
 
-    return [Mdl, Mdl_MAE, Mdl_IQR, Mdl_r2, DF_with_error]
+#     # Error metrics
+#     AE_RF_training = np.abs(Y_pred_training - training_nona[var_predict])
+#     IQR_RF_training = iqr(abs(AE_RF_training))
+#     r2_RF_training = r2_score(training_nona[var_predict], Y_pred_training)
+
+#     AE_RF_validation = np.abs(Y_pred_validation - validation_nona[var_predict])
+#     IQR_RF_validation = iqr(abs(AE_RF_validation))
+#     r2_RF_validation = r2_score(validation_nona[var_predict], Y_pred_validation)
+
+#     AE_RF_test = np.abs(Y_pred_test - test_nona[var_predict])
+#     IQR_RF_test = iqr(abs(AE_RF_test))
+#     r2_RF_test = r2_score(test_nona[var_predict], Y_pred_test)
+
+#     Mdl_MAE = [np.nanmedian(abs(AE_RF_training)), np.nanmedian(abs(AE_RF_validation)), np.nanmedian(abs(AE_RF_test))]
+#     Mdl_IQR = [IQR_RF_training, IQR_RF_validation, IQR_RF_test]
+#     Mdl_r2 = [r2_RF_training, r2_RF_validation, r2_RF_test]
+
+#     return [Mdl, Mdl_MAE, Mdl_IQR, Mdl_r2, DF_with_error]
 

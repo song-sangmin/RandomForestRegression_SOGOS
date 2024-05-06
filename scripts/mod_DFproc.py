@@ -26,11 +26,7 @@ STF = pd.read_csv(dir + 'STF.csv', header=None)
 for csv in [PF, SAF, SIF, STF]:
     csv.columns = ['lon', 'lat']
 
-file_path = '../data/glider/'
-dav_659 = pd.read_csv(file_path + 'sg659_diveavg.csv')
-dav_660 = pd.read_csv(file_path + 'sg660_diveavg.csv')
-
-
+# from mod_main import dav_659, dav_660
 # %% Format data from xarray Datasets into Pandas dataframes
 
 def flatten2DF(g3, nandrop=False): 
@@ -176,10 +172,23 @@ def make_diveav(df, thresh=0.005, mld_lim=[8,12]):
     return newDF, nanprofids
 
 
+
 def get_track_eke(dav_plat, aviso, buffer=0.04, daily=False):
     """ 
     Get along-track EKE from satellite data, which is averaged between days 120-200
     Use surface glider lat/lon to co-locate. 
+
+    SOGOS BOUNDS: 
+    datestart='2019-04-30'
+    dateend='2019-07-25'
+    dateend='2021-07-25'
+    lat1=-56.8; lat2=-43
+    lon1=19; lon2=41
+    data_sat = aviso.sel(time=slice(datestart, dateend))
+    data_sat = data_sat.sel(latitude=slice(lat1, lat2))
+    data_sat = data_sat.sel(longitude=slice(lon1, lon2))
+    avg_aviso = data_sat.mean(dim='time')
+
     """
     dates = sg.ytd2datetime(dav_plat.yearday)
     avg_aviso = aviso.mean(dim='time') # if using daily=false
@@ -340,6 +349,34 @@ def add_ML_integrated(mldf_plat, dav_plat, variable='nitrate'):
             mlstats.loc[i,mean_name] = integrate_ML_var(profML, variable=variable)[1]
 
     return mlstats
+
+
+# Method for getting new dataframe with horizontal buoyancy gradient
+def get_depth_bx(df_glid, d0=100, thresh=10):
+    """ Get horizontal buoyancy gradient, Bx, at depth d0
+    """
+    rho0 = 1027 # reference density
+    buoyancy = lambda sigma0: -9.81 * (sigma0 + 1000) / rho0
+    # buoyancy(sigma0)
+    df_glid['B'] = buoyancy(df_glid.sigma0)
+
+    depth_bx = pd.DataFrame()
+    for ind, prof in enumerate(sg.list_profile_DFs(df_glid)):
+        temp = prof[prof.pressure<d0]
+        if len(temp)>0:
+            row = temp.iloc[-1].copy()
+            if row.pressure > (d0-thresh):
+                depth_bx = pd.concat([depth_bx, row], axis=1, ignore_index=True)
+
+    depth_bx = depth_bx.T
+
+    depth_bx['Bx'] = np.tile(np.nan, len(depth_bx))
+    for ind, prof in enumerate(sg.list_profile_DFs(depth_bx)):
+        if ind > 0:
+            depth_bx.at[ind, 'Bx'] = depth_bx.B[ind] - depth_bx.B[ind-1]
+    
+    return depth_bx
+
 
 # %% Other functions using dataframes
 
