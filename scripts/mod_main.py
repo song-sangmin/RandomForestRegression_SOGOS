@@ -21,35 +21,38 @@ import mod_DFproc as dfproc
 # sg660 = pd.read_csv('../data/glider/df_660_tsO2corr_nonandrop_0131.csv')
 
 # Input glider data, which has already been quality controlled. 
-sg659 = pd.read_csv('../data/glider/sg659_tsO2corr.csv')
-sg660 = pd.read_csv('../data/glider/sg660_tsO2corr.csv')
+sg659 = pd.read_csv('../data/glider/sg659_tsO2corr.csv', index_col=0)
+sg660 = pd.read_csv('../data/glider/sg660_tsO2corr.csv', index_col=0)
 
 # Glider data
 # df_659 = pd.read_csv('../data/glider/mldata_sg659.csv')
 # df_660 = pd.read_csv('../data/glider/mldata_sg660.csv')
-df_659 = pd.read_csv('../working-vars/RF-glider/mlpred_sg659_G.csv') # fixed
-df_660 = pd.read_csv('../working-vars/RF-glider/mlpred_sg660_G.csv')
+df_659 = pd.read_csv('../working-vars/RF-glider/mlpred_sg659_G.csv', index_col=0) # fixed
+df_660 = pd.read_csv('../working-vars/RF-glider/mlpred_sg660_G.csv', index_col=0)
 # good for sure, but use EKE -- se Data Log
 # dav_659 = pd.read_csv('../data/glider/dav_659_may24.csv')  
 # dav_660 = pd.read_csv('../data/glider/dav_660_may24.csv')
-dav_659 = pd.read_csv('../data/glider/dav_659_EKEPAR.csv')  
-dav_660 = pd.read_csv('../data/glider/dav_660_EKEPAR.csv')
+dav_659 = pd.read_csv('../data/glider/dav_659_EKEPAR.csv', index_col=0)  
+dav_660 = pd.read_csv('../data/glider/dav_660_EKEPAR.csv', index_col=0)
 
 # Float data: 
-floatDF = pd.read_csv('../data/bgc-argo/mldata_floatDF_qc.csv')
+floatDF = pd.read_csv('../data/bgc-argo/mldata_floatDF_qc.csv', index_col=0)
 sgfloat = floatDF[(floatDF.yearday<205) & (floatDF.wmoid==5906030)]
 # Full float 6030, for long time series MLD
-dav_6030 = pd.read_csv('../data/bgc-argo/dav_full6030_noqc.csv')
+dav_6030 = pd.read_csv('../data/bgc-argo/dav_full6030_noqc.csv', index_col=0)
 # good for sure, but use EKE -- se Data Log
 # dav_float = dav_6030[dav_6030.yearday<210]
-dav_float = pd.read_csv('../data/bgc-argo/dav_sgfloat_EKEPAR.csv')
+dav_float = pd.read_csv('../data/bgc-argo/dav_sgfloat_EKEPAR.csv', index_col=0)
 
 # Ship data:
-shipDF = pd.read_csv('../data/go-ship/mldata_shipDF_qc.csv') 
+shipDF = pd.read_csv('../data/go-ship/mldata_shipDF_qc.csv', index_col=0) 
 
 # # Satellite data:
 altimetry = xr.open_dataset('../data/satellite/cmems_obs-sl_glo_phy-ssh_my_allsat-l4-duacs-0.25deg_P1D_1714604183615.nc')
-altimetry['eke'] = np.sqrt(altimetry.ugosa**2 + altimetry.vgosa**2)
+altimetry['eke'] = 0.5*np.sqrt(altimetry.ugosa**2 + altimetry.vgosa**2)
+
+FSLE =  xr.open_dataset('../data/satellite/FSLE_sogos.nc')
+
 
 # # EKE data
 # datestart='2019-04-30'
@@ -57,15 +60,9 @@ altimetry['eke'] = np.sqrt(altimetry.ugosa**2 + altimetry.vgosa**2)
 # dateend='2021-07-25'
 # lat1=-56.8; lat2=-43
 # lon1=19; lon2=41
-# data_sat = altimetry.sel(time=slice(datestart, dateend))
+# data_sat = aviso.sel(time=slice(datestart, dateend))
 # data_sat = data_sat.sel(latitude=slice(lat1, lat2))
 # data_sat = data_sat.sel(longitude=slice(lon1, lon2))
-
-# dav_659['eke'] = dfproc.get_track_eke(dav_659, data_sat, daily=True)
-# dav_660['eke']= dfproc.get_track_eke(dav_660, data_sat, daily=True)
-# # dav_659['eke_avg'] = dfproc.get_track_eke(dav_659, data_sat, daily=False)
-# # dav_660['eke_avg']= dfproc.get_track_eke(dav_660, data_sat, daily=False)
-# dav_float['eke'] = dfproc.get_track_eke(dav_660, data_sat, daily=True)
 
 
 

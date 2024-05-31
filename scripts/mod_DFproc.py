@@ -16,6 +16,11 @@ from scipy.io import savemat
 import mod_main as sg
 from mod_L3proc import vert_profiles
 import math
+import haversine as hs   
+from haversine import Unit
+
+
+
 
 
 dir = '../data/ACC_fronts/'
@@ -233,150 +238,6 @@ def get_track_FSLE(diveav, FSLE, buffer=0.04):
 
     return buffered_fsle
 
-# %% Mixed layer functions
-def make_mldf(df_glid, dav_glid):
-    """ 
-    Make a dataframe of only the upper mixed layer values.
-    @param:    df_glid:   dataframe of glider data
-                dav_glid:  dataframe of dive-averaged data
-    @return:    mldf: dataframe of glider data with only upper mixed layer data
-                mlstats: add on new variables to dav
-    """
-    mldf_glid = pd.DataFrame()
-
-    for i, prof in enumerate(list_profile_DFs(df_glid)):
-        # values that are the same for whole profile
-        mlp = dav_glid.mld.iloc[i]
-
-        if mlp != np.nan:
-            # Cut off all the data below the mixed layer
-            # Create an array containing mld for each row
-            upperprof = prof[prof.pressure<=mlp].copy()
-            mlp_array = np.tile(mlp, upperprof.shape[0])
-            upperprof['mld'] = mlp_array
-
-            # Make dataframe with only the ML values
-            mldf_glid = pd.concat([mldf_glid, upperprof], ignore_index=True)
-
-    return mldf_glid
-
-
-def integrate_ML_var(profML, variable='nitrate'):
-    """ 
-    Integrate the variable within the mixed layer. See AIES paper for more information.
-    @param  profML = dataframe of only ML values from single profile"""
-
-    # To avoid too much extrapolation, we set the surface value to the first value in the ML
-    # Also set the base ML value to the closest (deepest ML value)
-    profML = profML.sort_values(by='pressure')
-    new_row = profML.iloc[0, :].copy()
-    new_row['pressure'] = 0
-    profML = pd.concat([profML, new_row.to_frame().T])
-
-    profML = profML.sort_values(by='pressure')
-    end_row = profML.iloc[-1, :].copy()
-    end_row['pressure'] = profML.mld.iloc[0]
-    profML = pd.concat([profML, end_row.to_frame().T])
-
-    # Make variable array to integrate
-    arr = profML[variable]
-    pres_arr = profML.pressure.copy()
-    pres_arr = pres_arr*10000 # convert to Pa 
-
-    # Integrate variable over ML using trap rule
-    # This uses the hydrostatic relation to calculate integral
-    total = np.trapz(arr, pres_arr)/9.8  # in umol/m2 
-    avg = total/profML.mld.iloc[0]  # in umol/m2/m 
-    avg = avg/1000  # in umol/kg
-
-    return total, avg
-
-def add_dav_integrated(mldf_glid, dav_glid, variable='nitrate'):
-    """
-    Function to add dive-averaged, integrated values to the dataframe.
-    @param: mldf_glid: mixed layer dataframe from glider
-            dav_glid: dive-averaged glider dataframe
-    """
-    mlstats = dav_glid.copy()
-    total_name = variable + '_total'
-    mean_name = variable + '_mean'
-
-    mlstats[total_name] = np.tile(np.nan, mlstats.shape[0])
-    mlstats[mean_name] = np.tile(np.nan, mlstats.shape[0])
-
-    for i, profnum in enumerate(dav_glid.profid.values): # i = profid
-        profML = mldf_glid[mldf_glid.profid == profnum].copy()
-
-        if profML.shape[0]>0:  # if no ML data, then nans are kept as is.
-            # if there are ML data, add stats to dav_glid
-            # Need to use integral function
-            # For variance, make sure you take log of bbp values before
-            # For total and mean you do this in the intergrate_ML method 
-            # arr = profML[variable]
-            # if variable == 'bbp470':
-            #     arr = np.log(profML[variable])
-
-            mlstats.loc[i,total_name] = integrate_ML_var(profML, variable=variable)[0]
-            mlstats.loc[i,mean_name] = integrate_ML_var(profML, variable=variable)[1]
-
-    return mlstats
-
-def add_ML_integrated(mldf_plat, dav_plat, variable='nitrate'):
-    
-    mlstats = dav_plat.copy()
-    total_name = variable + '_total'
-    mean_name = variable + '_mean'
-
-    mlstats[total_name] = np.tile(np.nan, mlstats.shape[0])
-    mlstats[mean_name] = np.tile(np.nan, mlstats.shape[0])
-
-    mlstats= mlstats.reset_index(drop=True) # need this line for FLOATS
-    # for i, profML in enumerate(sg.list_profile_DFs(mldf_plat)):
-    for i, profnum in enumerate(dav_plat.profid.values): # i = profid
-        profML = mldf_plat[mldf_plat.profid == profnum].copy()
-
-        if len(profML)>0:  # if no ML data, then nans are kept as is.
-            # if there are ML data, add stats to dav_plat
-            # Need to use integral function
-
-            # For variance, make sure you take log of bbp values before
-            # For total and mean you do this in the intergrate_ML method 
-            arr = profML[variable]
-            if variable == 'bbp470':
-                arr = np.log(profML[variable])
-
-            mlstats.loc[i,total_name] = integrate_ML_var(profML, variable=variable)[0]
-            mlstats.loc[i,mean_name] = integrate_ML_var(profML, variable=variable)[1]
-
-    return mlstats
-
-
-# Method for getting new dataframe with horizontal buoyancy gradient
-def get_depth_bx(df_glid, d0=100, thresh=10):
-    """ Get horizontal buoyancy gradient, Bx, at depth d0
-    """
-    rho0 = 1027 # reference density
-    buoyancy = lambda sigma0: -9.81 * (sigma0 + 1000) / rho0
-    # buoyancy(sigma0)
-    df_glid['B'] = buoyancy(df_glid.sigma0)
-
-    depth_bx = pd.DataFrame()
-    for ind, prof in enumerate(sg.list_profile_DFs(df_glid)):
-        temp = prof[prof.pressure<d0]
-        if len(temp)>0:
-            row = temp.iloc[-1].copy()
-            if row.pressure > (d0-thresh):
-                depth_bx = pd.concat([depth_bx, row], axis=1, ignore_index=True)
-
-    depth_bx = depth_bx.T
-
-    depth_bx['Bx'] = np.tile(np.nan, len(depth_bx))
-    for ind, prof in enumerate(sg.list_profile_DFs(depth_bx)):
-        if ind > 0:
-            depth_bx.at[ind, 'Bx'] = depth_bx.B[ind] - depth_bx.B[ind-1]
-    
-    return depth_bx
-
 
 # %% Other functions using dataframes
 
@@ -579,7 +440,7 @@ def add_dist2maxb(platDF):
 
     return new_DF
 
-def add_nitraterad(platDF):
+def add_nitrategrad(platDF):
     """
     Calculate nitrate gradient dNO3/dZ using derivative of Pchip interpolator 
     @param      platDF: dataframe with argo profiles 
@@ -655,16 +516,24 @@ def add_Pchip_buoyancy(plat_DF):
 
     return new_DF
 
-# def daily_dist(dav):
-#     """ Improved from Glider_Processing"""
-#     temp = dav.yearday.round()
-#     cind = []
 
-#     # for i in np.arange(1,len(temp),1):
-#     la1 = dav.iloc[:-1].lat
-#     lo1 = dav.iloc[:-1].lon
-#     la2 = dav.iloc[1:].lat
-#     lo2 = dav.iloc[1:].lon
+def daily_dist(dav):
+    temp = dav.yearday.round()
+    cind = list(np.arange(0,len(temp)-1,1))
 
-#     dist = great_circle_distance(lo2, la2, lo1, la1)
-#     return dist
+    la1 = dav.lat.loc[cind[:-1]]
+    lo1 = dav.lon.loc[cind[:-1]]
+    la2 = dav.lat.loc[cind[1:]]
+    lo2 = dav.lon.loc[cind[1:]]
+
+    # make pairs
+    result = []
+
+    for ind in cind[:-1]:
+        loc1=(la1.iloc[ind], lo1.iloc[ind])
+        loc2=(la2.iloc[ind], lo2.iloc[ind])
+        result.append(hs.haversine(loc1,loc2,unit=Unit.METERS))
+    
+    return result
+
+

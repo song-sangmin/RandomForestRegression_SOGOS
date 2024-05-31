@@ -189,8 +189,6 @@ class ModelVersion:
     def copy(self):
         return self
 
-
-
     
     def get_metrics(self):
         model_metrics = pd.DataFrame()
@@ -256,7 +254,7 @@ class CrossVal_KFold:
         self.MAEs = {k: None for k in model_list}
         self.IQRs = {k: None for k in model_list}
 
-    def get_metrics(self):
+    def get_metrics(self, model_list=None): 
         """ 
         Calculate metrics.
         Notice different metrics from the ModelVersion class.
@@ -264,7 +262,10 @@ class CrossVal_KFold:
         i.e. aggregate errors across folds, indexed by Model_X"""
         cvk_metrics = pd.DataFrame()
         # Fill in metrics
-        for ind, mdl in enumerate(self.model_list):
+        if model_list == None:
+            model_list = self.model_list
+        
+        for ind, mdl in enumerate(model_list):
             cvk_metrics.at[ind, 'median_MAEs'] = np.nanmedian(self.MAEs[mdl].values) # median of 10 medians from folds
             cvk_metrics.at[ind, 'mean_MAEs'] = np.nanmean(self.MAEs[mdl].values)
             cvk_metrics.at[ind, 'mean_IQRs'] = iqr(self.IQRs[mdl].values)
