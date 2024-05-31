@@ -19,7 +19,7 @@ Specifically, our work will go through these main steps:
 4) Testing the RFR for an estimation of error. 
 5) Applying Seaglider inputs to predict new nitrate distributions. 
 
-![Increasing the resolution of Southern Ocean nitrate maps with RFR.](../paper-figs/mdfig_resolution.png))
+![Increasing the resolution of Southern Ocean nitrate maps with RFR.](../images/intro_resolution.png))
 
 In our study of the Southern Ocean, we use RFR to produce new nutrient maps at 50 times higher resolution than previously possible. By estimating small-scale information, RFR reveals interactions between physical and biological processes during rapid mixing events that are normally difficult to observe. These short-lived interactions appear to be important in determining local nutrient content and therefore biological activity in this important ocean basin. 
 
