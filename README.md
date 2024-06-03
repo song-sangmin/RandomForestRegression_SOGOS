@@ -1,4 +1,4 @@
-# Random Forest Regression on multi-platform, in-situ ocean observations
+# Random forest regression on multi-platform in-situ ocean observations
 
 Paper submitted to to AMS Artifical Intelligence in Earth Sciences (AIES) journal May 2024, pending review. - [Link to pre-print](https://doi.org/10.22541/essoar.171707849.91867565/v1)
 
@@ -31,7 +31,7 @@ Given increasing observational coverage of the global oceans by Argo floats and 
 
 Nutrient cycling in the ocean is mediated by physical mixing processes that span diverse spatial and temporal scales. Examining the full range of these transport processes will be critical for understanding controls on oceanic primary production, and therefore carbon and climate systems more broadly. Although new biogeochemical profiling floats (BGC-Argo) have begun to observe nutrient distributions globally, their 10-day cycling period limits the types of physical processes they can capture. Small-scale dynamics (occurring on $\mathcal{O}$(1) day and $\mathcal{O}$(1) km) remain particularly difficult to observe in-situ. Since theory and simulation support that these small-scale motions play significant roles in nutrient transport (Levy et al. 2018, Mahadevan 2016), new data science approaches are needed to assess their impact using available observations. Here, we show that random forest regression (RFR) is an effective machine learning tool for recovering high-frequency information by leveraging the sampling strategies of multiple ocean profilers. Our RFR is trained, validated, and tested on BGC-Argo and shipboard data to within %\sim%3\% accuracy, then applied to observations from two rapid-sampling Seagliders deployed during the Southern Ocean Glider Observations of the Submesoscale (SOGOS) experiment in 2019. This approach generates novel nitrate distributions at 50 times the horizontal resolution of the original BGC-Argo float data. Using the high-resolution RFR outputs, we identify signatures of nutrient injection into the upper ocean that coincide with enhanced stirring in a turbulent region downstream of the Southwest Indian Ridge. Relating these intermittent transport events to biological time series provides new observational evidence that small-scale stirring mediates additional nutrient drawdown and primary production in this region. We note that the Southern Ocean has outsized importance in the global carbon cycle (Gray 2024), such that constraining nutrient dynamics here will improve parameterization of larger ocean models. In our exploration of high-frequency nitrate variability in the Southern Ocean, RFR extends the scientific capabilities of publicly available BCG-Argo data and allows for deeper understanding of biogeochemical cycling at a more comprehensive set of scales. As a flexible approach that can be generalized to suit other multi-platform observing systems, RFR presents new opportunities to maximize value from existing datasets.
 
-### Notebooks
+### Tutorial
 
 Three main notebooks describe the (1) Random Forest model development, (2) application to ocean data and performance evaluation, followed by (3) scientific analysis of the output. 
 
@@ -59,7 +59,7 @@ Steps:
 
 ### Scripts
 
-Most major functions are stored in modules, which are used to control processing functions that may be needed across scripts. The `class_RF.py` holds the important Class objects used in `Training_RandomForest.ipynb`. We use the environment `mlsogos`, in the `binder` folder. 
+Most major functions are stored in modules, which are used to control processing functions that may be needed across scripts. The `mod_RFR.py` holds the important class objects used in `Training_RandomForest.ipynb`. We use the environment `mlsogos`, in the `binder` folder. 
 
 
 - *Modules*: 
@@ -70,7 +70,7 @@ Most major functions are stored in modules, which are used to control processing
                 mod_main      as sg             Data and main ancillary functions.
                 mod_L3proc    as gproc          Used for xarray Datset processing of the level 3, 'L3' gridded glider product
                 mod_DFproc    as dfproc         Used for pandas Dataframe processing during analysis
-                mod_plot        as sgplot         Used to define common plotting parameters; can reproduce all paper figs
+                mod_plot      as sgplot         Used to define common plotting parameters; can reproduce all paper figs
 
 
 
