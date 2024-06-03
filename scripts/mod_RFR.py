@@ -6,6 +6,7 @@ import math
 from scipy.stats import iqr
 
 
+# %% Initialize variables and data
 var_list = {
             'Model_A': ['spice', 'sigma0'],
             'Model_B': ['CT', 'SA', 'pressure'], 
@@ -51,9 +52,6 @@ ESPER_pred = pd.read_csv('../working-vars/ESPER-prediction/wmo5906030_df_with_es
 CANYON_pred = pd.read_csv('../working-vars/CANYON-prediction/wmo5906030_df_with_canyon_dec2023.csv')
 
 # %% Methods for preparing ML Data
-""" 
-Includes methods for splitting datasets into training, validation, test
-"""
 
 def split_profiles(floatDF, test_split = False):
     """ 
@@ -65,9 +63,7 @@ def split_profiles(floatDF, test_split = False):
     This method treats a float profile like the smallest discrete "unit" upon which to train and validate the model.
     Our goal is to predict a water column (profile) rather than a discrete observation, so profiles are kept together while splitting.
     Note that test data will be all profiles from the SOGOS float when test_split is set as False by default.
-
     """
-
     # Create list of unique profile ID's and select random 80% for training
     profs = pd.unique(floatDF.profid)
     if 5906030 in profs:
@@ -122,47 +118,6 @@ def split_ship(shipDF, test_split = False):
 
 
 
-
-# %% Ancillary functions
-     
-def get_95_bounds(data):
-    mean = np.mean(data); std_dev = np.std(data)
-    low = mean - 2 * std_dev
-    high = mean + 2 * std_dev
-
-    return [low, high]
-
-def get_depth_bias(data, ranges, var='val_error'):
-    """ Get validation errors in 100m depth bins. """
-    # Example range to pass as @param: ranges
-    # pressure_ranges = [(0, 100), (100, 200), (200, 300), (300, 400), (400, 500),
-    #                 (500, 600), (600, 700), (700, 800), (800, 900), (900, 1000)]
-    return {f"{start}-{end}": data[(data["pressure"] >= start) & (data["pressure"] < end)][var].values
-            for start, end in ranges}
-
-def print_errors(data, var ='test_relative_error', pres_lim= [0,1000]):
-    """ 
-    @ param: data:  dataset that has "test_relative_error" in it
-    """
-    data = data[(data.pressure > pres_lim[0]) & (data.pressure < pres_lim[1])]
-    err = data[var]
-    print('Error metric: ' + var)
-    print('Restricted to depths ' + str(pres_lim[0]) + ' to ' + str(pres_lim[1]) + ':')
-    print('median abs error: \t' + str(np.abs(err).median()))
-    print('mean abs error \t\t' + str(np.abs(err).mean()))
-
-    # Bounds 95
-    [low, high] = get_95_bounds(err)
-    print('\n95% of errors fall between:')
-    print(str(low.round(5)) + ' to ' + str(high.round(5)) )
-
-    err = data[data.yearday <210][var]
-    [low, high] = get_95_bounds(err)
-    print("\nDuring SOGOS between depths " + str(pres_lim[0]) + ' to ' + str(pres_lim[1]) + ':')
-    print('95% of errors fall between:')
-    print(str(low.round(5)) + ' to ' + str(high.round(5)) )
-
-
 # %% Classes for storing model results
 
 class ModelVersion: 
@@ -178,17 +133,16 @@ class ModelVersion:
         self.DF_err = {model: None for model in ind_list}
         self.val_err = {model: None for model in ind_list}
     
-    # def add(self, model_name):
-    #     self.models[model_name] = None
-    #     self.MAE[model_name] = None
-    #     self.IQR[model_name] = None
-    #     self.r2[model_name] = None
-    #     self.DF_err[model_name] = None
-    #     self.val_err[model_name] = None
+    def add(self, model_name):
+        self.models[model_name] = None
+        self.MAE[model_name] = None
+        self.IQR[model_name] = None
+        self.r2[model_name] = None
+        self.DF_err[model_name] = None
+        self.val_err[model_name] = None
     
     def copy(self):
         return self
-
     
     def get_metrics(self):
         model_metrics = pd.DataFrame()
@@ -202,7 +156,6 @@ class ModelVersion:
         model_metrics.set_index('ind', inplace=True)
         
         return model_metrics
-
 
 # %% Classes for storing cross-validation results
     
@@ -330,7 +283,43 @@ def split_loos(wmos, floatDF, shipDF):
     return loo_training, loo_validation
 
 
+# %% Ancillary functions  
+def get_95_bounds(data):
+    mean = np.mean(data); std_dev = np.std(data)
+    low = mean - 2 * std_dev
+    high = mean + 2 * std_dev
 
+    return [low, high]
+
+def get_depth_bias(data, ranges, var='val_error'):
+    """ Get validation errors in 100m depth bins. """
+    # Example range to pass as @param: ranges
+    # pressure_ranges = [(0, 100), (100, 200), (200, 300), (300, 400), (400, 500),
+    #                 (500, 600), (600, 700), (700, 800), (800, 900), (900, 1000)]
+    return {f"{start}-{end}": data[(data["pressure"] >= start) & (data["pressure"] < end)][var].values
+            for start, end in ranges}
+
+def print_errors(data, var ='test_relative_error', pres_lim= [0,1000]):
+    """ 
+    @ param: data:  dataset that has "test_relative_error" in it
+    """
+    data = data[(data.pressure > pres_lim[0]) & (data.pressure < pres_lim[1])]
+    err = data[var]
+    print('Error metric: ' + var)
+    print('Restricted to depths ' + str(pres_lim[0]) + ' to ' + str(pres_lim[1]) + ':')
+    print('median abs error: \t' + str(np.abs(err).median()))
+    print('mean abs error \t\t' + str(np.abs(err).mean()))
+
+    # Bounds 95
+    [low, high] = get_95_bounds(err)
+    print('\n95% of errors fall between:')
+    print(str(low.round(5)) + ' to ' + str(high.round(5)) )
+
+    err = data[data.yearday <210][var]
+    [low, high] = get_95_bounds(err)
+    print("\nDuring SOGOS between depths " + str(pres_lim[0]) + ' to ' + str(pres_lim[1]) + ':')
+    print('95% of errors fall between:')
+    print(str(low.round(5)) + ' to ' + str(high.round(5)) )
 
 
 

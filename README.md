@@ -3,13 +3,15 @@
 Paper submitted to to AMS Artifical Intelligence in Earth Sciences (AIES) journal May 2024, pending review. - [Link to pre-print](https://doi.org/10.22541/essoar.171707849.91867565/v1)
 
 Contact: Song Sangmin <sangsong@uw.edu>
+
 University of Washington, School of Oceanography
 
-Last updated: May 30 2023
+Last updated: May 30 2024
 
 ## Overview
 
-Here, we use a regional random forest regression (RFR) to leverage data from multiple ocean observing instruments that offer different advantages. 
+Here, we use a regional random forest regression (RFR) to leverage data from multiple ocean observing instruments that offer different advantages. In our study of the Southern Ocean, we use RFR to produce new nutrient maps at 50 times higher resolution than previously possible. By estimating small-scale information, RFR reveals interactions between physical and biological processes during rapid mixing events that are normally difficult to observe. These short-lived interactions appear to be important in determining local nutrient content and therefore biological activity in this important ocean basin. 
+
 
 Specifically, our work will go through these main steps: 
 
@@ -19,9 +21,9 @@ Specifically, our work will go through these main steps:
 4) Testing the RFR for an estimation of error. 
 5) Applying Seaglider inputs to predict new nitrate distributions. 
 
-![Increasing the resolution of Southern Ocean nitrate maps with RFR.](./images/intro_resolution.png))
 
-In our study of the Southern Ocean, we use RFR to produce new nutrient maps at 50 times higher resolution than previously possible. By estimating small-scale information, RFR reveals interactions between physical and biological processes during rapid mixing events that are normally difficult to observe. These short-lived interactions appear to be important in determining local nutrient content and therefore biological activity in this important ocean basin. 
+Figure: Increasing the resolution of Southern Ocean nitrate maps with RFR.
+![Figure](./images/small_resolution.png))
 
 Given increasing observational coverage of the global oceans by Argo floats and other drifting profilers, RFR presents opportunities to derive additional value from these sometimes incomplete biogeochemical datasets. Such efforts to bridge observational gaps using new ocean technologies and machine learning techniques will expand our knowledge of global biogeochemical cycles at previously inaccessible scales.
 
@@ -45,12 +47,11 @@ Steps:
 - The testing phase uses withheld float data from the SOGOS BGC-Argo float to estimate the model error. We also compare performance with two well-established machine learning models, ESPER-Mixed and CANYON-B, which both rely on neural networks. 
 
 
-
-2. Random Forest Analysis: `scripts/Analysis_RandomForest.ipynb`
+<!-- 2. Random Forest Analysis: `scripts/Analysis_RandomForest.ipynb`
 
 - Here, we
 
-- 
+-  -->
 
 
 ## Code Directory
@@ -58,7 +59,7 @@ Steps:
 
 ### Scripts
 
-Most major functions are stored in modules, which are used to control processing functions that may be needed across scripts. The `class_RF.py` holds the important Class objects used in `Training_RandomForest.ipynb`.
+Most major functions are stored in modules, which are used to control processing functions that may be needed across scripts. The `class_RF.py` holds the important Class objects used in `Training_RandomForest.ipynb`. We use the environment `mlsogos`, in the `binder` folder. 
 
 
 - *Modules*: 
@@ -76,21 +77,22 @@ Most major functions are stored in modules, which are used to control processing
 
 ### Folders
 
-
 - `scripts/` : code for analysis
 - `data/` : float, ship, and glider data as downloaded
 - `working-vars/` : calculated output variables from analysis
-- `paper-figs/` : final output figures
+- `images/` : final output figures
 
 
 ### Naming Conventions
 
 - *Glider:*    
+
                 dav_659                         Profiles-averaged metrics, incl. MLD
                 df_659                          Flattened dataframe
                 profid                          Unique name for each profile
 
 - *Floats:*    
+
                 dav_659                         Profile-averaged metrics, incl. MLD
                 df_659                          Flattened dataframe
                 wmoid                           Unique name for each float WMO#

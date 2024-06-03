@@ -16,13 +16,9 @@ from scipy.io import savemat
 import mod_main as sg
 from mod_L3proc import vert_profiles
 import math
-import haversine as hs   
-from haversine import Unit
 
 
-
-
-
+# Fronts
 dir = '../data/ACC_fronts/'
 PF = pd.read_csv(dir + 'PF.csv', header=None)
 SAF = pd.read_csv(dir + 'SAF.csv', header=None)
@@ -32,6 +28,22 @@ for csv in [PF, SAF, SIF, STF]:
     csv.columns = ['lon', 'lat']
 
 # from mod_main import dav_659, dav_660
+
+# %% Useful geospatial information
+
+def print_bounds(DF):
+    # print('Bounds of data: \n')
+    print('Dates: \t\t' + str(sg.ytd2datetime(DF.yearday.min())) + ' to ' + str(sg.ytd2datetime(DF.yearday.max())))
+    print('Latitude:\t' + str(DF.lat.min()) + ' to ' + str(DF.lat.max()))
+    print('Longitude:\t' + str(DF.lon.min()) + ' to ' + str(DF.lon.max()))
+    
+def restrict_DF(data, start_yd, end_yd, lat1, lat2, lon1, lon2):
+    data = data[(data.lat > lat1) & (data.lat < lat2)]
+    data = data[(data.lon > lon1 ) & (data.lon <lon2)]
+    data = data[(data.yearday > start_yd) & (data.yearday < end_yd)]
+    return data
+
+
 # %% Format data from xarray Datasets into Pandas dataframes
 
 def flatten2DF(g3, nandrop=False): 
@@ -516,24 +528,5 @@ def add_Pchip_buoyancy(plat_DF):
 
     return new_DF
 
-
-def daily_dist(dav):
-    temp = dav.yearday.round()
-    cind = list(np.arange(0,len(temp)-1,1))
-
-    la1 = dav.lat.loc[cind[:-1]]
-    lo1 = dav.lon.loc[cind[:-1]]
-    la2 = dav.lat.loc[cind[1:]]
-    lo2 = dav.lon.loc[cind[1:]]
-
-    # make pairs
-    result = []
-
-    for ind in cind[:-1]:
-        loc1=(la1.iloc[ind], lo1.iloc[ind])
-        loc2=(la2.iloc[ind], lo2.iloc[ind])
-        result.append(hs.haversine(loc1,loc2,unit=Unit.METERS))
-    
-    return result
 
 

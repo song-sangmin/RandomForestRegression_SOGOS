@@ -1,16 +1,22 @@
-# from re import L
+
 import xarray as xr
 import pandas as pd
 import numpy as np
 import gsw 
-import matplotlib.pyplot as plt
 from cmocean import cm as cmo
 from datetime import datetime
 import scipy
-# import glidertools as gt
-# import importlib as lib
-import seaborn as sns
+
 from importlib import reload
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib.patheffects as pe
+import matplotlib.patches as patch
+from labellines import labelLine, labelLines
+import matplotlib.colors as mpcolors
+from matplotlib.ticker import FormatStrFormatter
+
 
 from mod_main import ytd2datetime
 # import mod_MLV as mlv
@@ -66,7 +72,6 @@ umol_unit = (r'$\mathbf{[\mu} \mathregular{mol~kg} \mathbf{^{-1}]}$')
 eke_unit = (r'$\mathbf{[m^2~s^{-2}]}$')
 umol_unit_squared = (r'$\mathbf{[\mu} \mathregular{mol^2~kg} \mathbf{^{-2}]}$')
 
-
 sigma_unit = (r'$\mathbf{\sigma_0}$ ' + '[kg' + r'$\mathbf{~m^{-3}]}$')
 spice_unit = (r'$ \mathbf{\tau} $ ' + '$\mathbf{[m^{-3}~}$' + 'kg]')
 backscatter_unit = ('log([m'  + r'$ \mathbf{^{-1}} $' + '])')
@@ -79,16 +84,16 @@ overline_title = (r'$\overline{\mathregular{N}} \mathregular{_{ML}}$ ')
 hvar_title = ('s'+ r'$ \mathbf{^2_{H,NO_3}}$ ')
 bbp_title = ('bbp' + r'$_{\mathregular{470}} $')
 hb_title = ('|' + r'$\mathbf{\nabla_h}\mathregular{b}$' + '|')
-# $s^2_{H,NO_3}$
-# hvar_title = ('s'+ r'$ $ ')
 
 
-# Data
-
-# reload(mlv)
-# reload(sg)
+# %% Data
 from mod_main import df_659, df_660, dav_659, dav_660
 from mod_main import dav_6030, dav_float, sgfloat
+from mod_main import altimetry
+
+from mod_main import shipDF, floatDF
+wmoids = floatDF.wmoid.unique()
+
 from mod_RFR import RF_validation, RF_test, RF_modelmetrics, RF_featimps
 from mod_RFR import RF_kfold, RF_loo
 
@@ -96,9 +101,186 @@ from mod_RFR import RF_kfold, RF_loo
 from mod_MLV import mlstat_659, mlstat_660, mlstat_float
 from mod_MLV import hvariance_659, hvariance_660
 
-
 d0_660 = {27.3: 174.62, 27.4: 223.69, 27.5: 296.81, 27.6: 396.96}
 isos = [27.3, 27.4, 27.5, 27.6]
+
+
+# %% STUDY REGION
+
+def study_region_eke(df_float = sgfloat, df_glid1  = df_659, df_glid2 = df_660, fs = (7,8), fontsize=14):
+    """ 
+    @param:         fontsize    label font size
+    """
+
+    fig, axs = plt.subplots(2,1, figsize=fs, layout='constrained')
+    axs = axs.flatten()
+    df_float = df_float[df_float.yearday<205]
+
+    # START HERE
+    for ax in [axs[0]]:
+            datestart='2019-04-30'
+            dateend='2019-07-25'
+            lat1=-56.8; lat2=-43
+            lon1=19; lon2=41
+            data_sat = altimetry.sel(time=slice(datestart, dateend))
+            data_sat = data_sat.sel(latitude=slice(lat1, lat2))
+            data_sat = data_sat.sel(longitude=slice(lon1, lon2))
+            avg_altimetry = data_sat.mean(dim='time')
+
+            #background EKE
+            sca = avg_altimetry.eke.plot(ax=ax, cmap='bone_r', alpha=0.8, add_colorbar=False, vmin=0.02, vmax=0.29)
+            # fig.colorbar(sca, ax=ax, shrink=0.5).set_label('EKE')
+
+            contour = ax.contour(avg_altimetry['longitude'], avg_altimetry['latitude'], avg_altimetry['adt'], 
+                                    colors='k', alpha=0.3, linestyles='solid', zorder=1, levels=4)
+            ax.clabel(contour, inline=True, fontsize=fontsize-2)  # Add labels to contour lines
+
+            # Plot float
+
+            ax.plot(df_float.lon,df_float.lat, color =  '#CCBB44', alpha=1, linewidth=4, linestyle='dashed',
+                    label='float', zorder=3)  # sns.color_palette("Oranges")[3]
+            ax.scatter(df_float.lon,df_float.lat, color =  '#CCBB44', alpha=0.9, s=50, 
+                    marker='D', edgecolors='k', zorder=3)
+
+            # Gliders
+            ax.plot(df_glid1.lon, df_glid1.lat, color = plat_colors['sg659'], alpha=0.8, linewidth=6, linestyle='dashed', label='sg659', 
+                    path_effects=[pe.Stroke(linewidth=8, foreground='k'), pe.Normal()], zorder=3) 
+
+            ax.plot(df_glid2.lon, df_glid2.lat, color = plat_colors['sg660'], alpha=0.8, linewidth=4, linestyle='dashed', label='sg660', 
+                    path_effects=[pe.Stroke(linewidth=6, foreground='w'), pe.Normal()], zorder=3) 
+            
+            # Box around study region in panel b
+            rect = patch.Rectangle((29.5,-54.7), 9.9, 5.5, fill=False, color = 'k', alpha=0.3,linewidth=2, zorder=1)
+            ax.add_patch(rect)
+
+    for ax in [axs[1]]:
+            datestart='2019-04-30'
+            dateend='2019-07-25'
+            lat1=-54.7; lat2=-49.2
+            lon1=29.5; lon2=39.4
+            data_sat = altimetry.sel(time=slice(datestart, dateend))
+            data_sat = data_sat.sel(latitude=slice(lat1, lat2))
+            data_sat = data_sat.sel(longitude=slice(lon1, lon2))
+            avg_altimetry = data_sat.mean(dim='time')
+
+            # Plot float
+            ax.plot(dav_float.lon,dav_float.lat, color =  '#CCBB44', alpha=1, linewidth=4, linestyle='dashed',
+            label='float', zorder=3)  # sns.color_palette("Oranges")[3]
+            ax.scatter(dav_float.lon.values,dav_float.lat.values, color =  'k', alpha=0.9, s=100, 
+                    marker='D', edgecolors='k', zorder=3)
+            ax.scatter(dav_float.lon.values,dav_float.lat.values, color =  '#CCBB44', alpha=0.9, s=70, 
+                    marker='D', edgecolors='k', zorder=3)
+            
+            for ind, day in enumerate([int(x) for x in dav_float.yearday.values]):
+                    if day in ([120,135,140,150, 160, 170, 185, 205]):
+                            ax.text(dav_float.lon.loc[ind]-.3, dav_float.lat.loc[ind]-.4, str(day), 
+                                            fontsize=fontsize, color='k',
+                            path_effects=[pe.Stroke(linewidth=3, foreground='#CCBB44'), pe.Normal()], zorder=3)
+
+            # Plot Glider
+            ax.plot(df_glid2.lon, df_glid2.lat, color = plat_colors['sg660'], alpha=0.8, linewidth=3, linestyle='dashed', label='sg660',
+                    path_effects=[pe.Stroke(linewidth=5, foreground='w'), pe.Normal()], zorder=3) 
+
+            # Plot every 10th glider position
+            for day in [120,125,135, 150, 160, 170, 185, 200]:
+                    i = np.where(dav_660.yearday.round()==day)
+                    ax.scatter(dav_660.lon.loc[i].values, dav_660.lat.loc[i].values, s=100, color='rebeccapurple', alpha=0.2, zorder=3)
+                    ax.text(dav_660.lon.loc[i].values[0]+.04, dav_660.lat.loc[i].values[0]+0.08, str(day), 
+                                    fontsize=fontsize, color=plat_colors['sg660'],
+                            path_effects=[pe.Stroke(linewidth=3, foreground='w'), pe.Normal()], zorder=3)
+
+
+            # Plot EKE
+            sca = avg_altimetry.eke.plot(ax=ax, cmap='bone_r', alpha=0.9, add_colorbar=False, zorder=0, vmin=0.02, vmax=0.29)
+                            # cbar_kwargs={'label': 'EKE ' + r'$\mathregular{[m^2/s^2]}$'})
+            # fig.colorbar(sca, ax=ax).set_label('EKE ' + r'$\mathregular{[m^2/s^2]}$')
+
+
+            # Plot ADT Contours
+            contour = ax.contour(avg_altimetry['longitude'], avg_altimetry['latitude'], avg_altimetry['adt'], 
+                            colors='k', alpha=0.3, linestyles='solid', zorder=1, levels=2)
+            ax.clabel(contour, inline=True, fontsize=fontsize-2)  # Add labels to contour lines
+
+    fig.colorbar(sca, ax=axs[:], shrink=0.4).set_label('EKE ' + r'$\mathbf{[m^2~s^{-2}]}$')
+
+    for ax in axs:
+        ax.yaxis.set_major_formatter("{x:1.0f}°S")
+        ax.xaxis.set_major_formatter("{x:1.0f}°E")
+        ax.set_xlabel('')
+        ax.set_ylabel('')
+        ax.set_aspect('equal')
+    return axs[0]
+
+# %% ARGO MAP
+# Download fronts of the Antarctic Circumpolar Current
+
+def training_float_map(floatDF = floatDF, shipDF = shipDF, fsize = (10,8), fontsize=16):
+    """
+    """
+    PF = pd.read_csv('../data/ACC_fronts/PF.csv', header=None)
+    SIF = pd.read_csv('../data/ACC_fronts/SIF.csv', header=None)
+    for csv in [PF, SIF]:
+        csv.columns = ['lon', 'lat']
+
+
+    fig = plt.figure(figsize=fsize)
+    ax=plt.gca()
+
+    for wmo in wmoids[wmoids!=5906030]:
+        ax.plot(floatDF[floatDF.wmoid==wmo].lon,floatDF[floatDF.wmoid==wmo].lat,
+                color = wmo_colors[wmo], alpha=0.2, linewidth=3, label=str(wmo)[3:], zorder=3)
+        ax.scatter(floatDF[floatDF.wmoid==wmo].lon,floatDF[floatDF.wmoid==wmo].lat,
+                color = wmo_colors[wmo], alpha=0.1, s=20, zorder=3)
+
+    for wmo in [5906030]:
+        ax.plot(floatDF[floatDF.wmoid==wmo].lon,floatDF[floatDF.wmoid==wmo].lat,
+                color = sns.color_palette("Oranges")[3], alpha=0.4, linewidth=5, label=str(wmo)[3:], zorder=3)
+        ax.scatter(floatDF[floatDF.wmoid==wmo].lon,floatDF[floatDF.wmoid==wmo].lat,
+                color = sns.color_palette("Oranges")[3], alpha=0.1, s=20, zorder=3)
+
+    for front in [SIF, PF]:
+        front = front[(front.lon > 0 ) & (front.lon <65)]
+        ax.scatter(front.lon, front.lat, color='k', alpha=0.2, s=4, zorder=3)
+    #      ax.plot(front.lon, front.lat, color='k', alpha=0.1, linewidth=2, zorder=3)
+
+    # plt.title('BGC-Argo Training Data')
+    # plt.title('Argo Yeardays: ' + str(start_yd) + ' to ' + str(end_yd))
+    rect = patch.Rectangle((29,-55),10,5, fill=True, color="orange", alpha=0.3,linewidth=2, zorder=1)
+
+    ax.add_patch(rect)
+    ax.set_xlim(1,69)
+    ax.set_ylim(-62,-47)
+    ax.set_aspect('equal')
+
+    ax.yaxis.set_major_formatter("{x:1.0f}°S")
+    ax.xaxis.set_major_formatter("{x:1.0f}°E")
+
+    ax.grid(linestyle='dashed', alpha=0.6, zorder=1)
+
+    lines = ax.get_lines()
+    labelLines(lines, align=False, fontsize=fontsize, zorder=3)
+    # labelLines(lins) # , align=False, fontsize=fontsize)
+    ax.plot(shipDF.lon, shipDF.lat, alpha=0.8, linestyle='dashed', c='k', linewidth=3)
+    return ax 
+
+
+def argo_time_coverage(floatDF = floatDF, fsize=(10,5), fontsize=14):
+    sns.set_palette(wmo_colors.values())
+
+    fig = plt.figure(figsize=fsize)
+    ax = plt.gca()
+    pd.DataFrame({k: v for k, v in floatDF.groupby('wmoid').yearday}).plot.hist(stacked=True, ax=ax, zorder=3, alpha=0.8, linewidth=1, edgecolor='k') 
+    ax.legend([str(wmo)[-4:] for wmo in wmoids], loc='upper left', fontsize=fontsize)
+
+    # ax.set_title('Time Coverage by Float WMO')
+    # ax.set_xlabel('Time')
+    ax.set_xticks([-365, 0, 365, 365*2])
+    ax.set_xticklabels(['Jan 2018', 'Jan 2019', 'Jan 2020', 'Jan 2021'])
+    ax.set_ylim([0, 3000])
+    ax.set_ylabel('Observations')
+    ax.grid(axis='y', alpha=0.5, zorder=0)
+
+    return ax
 
 # %% RANDOM FOREST TRAINING
 

@@ -15,7 +15,6 @@ import mod_DFproc as dfproc
 
 # %% Data
 
-
 # To get all MLD's on not-QC data, use: 
 # sg659 = pd.read_csv('../data/glider/df_659_tsO2corr_nonandrop_0131.csv')
 # sg660 = pd.read_csv('../data/glider/df_660_tsO2corr_nonandrop_0131.csv')
@@ -29,9 +28,6 @@ sg660 = pd.read_csv('../data/glider/sg660_tsO2corr.csv', index_col=0)
 # df_660 = pd.read_csv('../data/glider/mldata_sg660.csv')
 df_659 = pd.read_csv('../working-vars/RF-glider/mlpred_sg659_G.csv', index_col=0) # fixed
 df_660 = pd.read_csv('../working-vars/RF-glider/mlpred_sg660_G.csv', index_col=0)
-# good for sure, but use EKE -- se Data Log
-# dav_659 = pd.read_csv('../data/glider/dav_659_may24.csv')  
-# dav_660 = pd.read_csv('../data/glider/dav_660_may24.csv')
 dav_659 = pd.read_csv('../data/glider/dav_659_EKEPAR.csv', index_col=0)  
 dav_660 = pd.read_csv('../data/glider/dav_660_EKEPAR.csv', index_col=0)
 
@@ -39,22 +35,19 @@ dav_660 = pd.read_csv('../data/glider/dav_660_EKEPAR.csv', index_col=0)
 floatDF = pd.read_csv('../data/bgc-argo/mldata_floatDF_qc.csv', index_col=0)
 sgfloat = floatDF[(floatDF.yearday<205) & (floatDF.wmoid==5906030)]
 # Full float 6030, for long time series MLD
-dav_6030 = pd.read_csv('../data/bgc-argo/dav_full6030_noqc.csv', index_col=0)
-# good for sure, but use EKE -- se Data Log
-# dav_float = dav_6030[dav_6030.yearday<210]
-dav_float = pd.read_csv('../data/bgc-argo/dav_sgfloat_EKEPAR.csv', index_col=0)
+dav_6030 = pd.read_csv('../data/bgc-argo/dav_full6030_noqc.csv', index_col=0) # over all years
+dav_float = pd.read_csv('../data/bgc-argo/dav_sgfloat_EKEPAR.csv', index_col=0) # only sogos deployment
 
 # Ship data:
-shipDF = pd.read_csv('../data/go-ship/mldata_shipDF_qc.csv', index_col=0) 
+shipDF = pd.read_csv('../data/go-ship/mldata_shipDF_qc.csv') 
 
-# # Satellite data:
+# Satellite data:
 altimetry = xr.open_dataset('../data/satellite/cmems_obs-sl_glo_phy-ssh_my_allsat-l4-duacs-0.25deg_P1D_1714604183615.nc')
 altimetry['eke'] = 0.5*np.sqrt(altimetry.ugosa**2 + altimetry.vgosa**2)
 
 FSLE =  xr.open_dataset('../data/satellite/FSLE_sogos.nc')
 
-
-# # EKE data
+# # EKE data bounds
 # datestart='2019-04-30'
 # dateend='2019-07-25'
 # dateend='2021-07-25'
@@ -63,7 +56,6 @@ FSLE =  xr.open_dataset('../data/satellite/FSLE_sogos.nc')
 # data_sat = aviso.sel(time=slice(datestart, dateend))
 # data_sat = data_sat.sel(latitude=slice(lat1, lat2))
 # data_sat = data_sat.sel(longitude=slice(lon1, lon2))
-
 
 
 # %% Common functions for operating on arrays 
@@ -90,7 +82,6 @@ def get_ydsines(yearday):
     return [ydcos, ydsin]
 
 # %% Add trimming functions
-
 def slice_sogos(ds, datestart='2017-04-30', dateend='2019-07-25',
                 lat1=-62, lat2=-48,
                 lon1=5, lon2=65):
@@ -105,7 +96,6 @@ def slice_sogos(ds, datestart='2017-04-30', dateend='2019-07-25',
 
 # %% Add simple printing functions
 
-# Method to check MAE dictionaries
 def print_dict(dict):
     print("\n".join("{}  \t{}".format(k, v) for k, v in dict.items()))
 
@@ -170,180 +160,80 @@ def print_profile_nobs(platDF):
 
 # %% Add functions for scaling features
 
-def scale_features(df, training, type='StandardScaler'):
-    """ Scale down glider dataset.
-    @param: df: dataframe to scale
-            type: type of scaler to use, 'StandardScaler' or 'MinMaxScaler'
-    """
-
-    cols_nonan = [col for col in df.columns if col not in ['profid', 'wmoid']] # all columns to remove nans
-    newdf = df.dropna(axis=0, subset=cols_nonan).copy()
-    new_training = training.dropna(axis=0, subset=cols_nonan).copy()
-
-    # Drop NaNs *EXCEPT* in the wmoid column, or else ship data is removed
-
-    if type == 'StandardScaler':
-        sca = preprocessing.StandardScaler().fit(new_training[cols_nonan])
-
-    elif type == 'MinMaxScaler':
-        sca = preprocessing.MinMaxScaler().fit(new_training[cols_nonan])
-
-    df_scaled =  pd.DataFrame(sca.transform(newdf[cols_nonan]), columns=newdf[cols_nonan].columns)
-    df_scaled['profid'] = newdf['profid']
-    df_scaled['wmoid'] = newdf['wmoid']
-
-    return df_scaled
-
-
-def scale_down_tvt(training, validation, test, type='StandardScaler'):
-    """ 
-    Scale features using 
-    @param: df: dataframe to scale
-            type: type of scaler to use, 'StandardScaler' or 'MinMaxScaler'
-    """
-    # Don't remove NaNs in wmoid since ship will have empty field
-    cols_nonan = [col for col in training.columns if col not in ['profid', 'wmoid']] # all columns to remove nans
-
-    new_training = training.dropna(axis=0, subset=cols_nonan).copy()
-    new_validation = validation.dropna(axis=0, subset=cols_nonan).copy()
-    new_test = test.dropna(axis=0, subset=cols_nonan).copy()
-
- 
-    # Scaler is built *USING TRAINING DATA* and applied to all
-    if type == 'StandardScaler':
-        sca = preprocessing.StandardScaler().fit(new_training[cols_nonan])
-
-    elif type == 'MinMaxScaler':
-        sca = preprocessing.MinMaxScaler().fit(new_training[cols_nonan])
-
-    # Scale down all using the training scaler
-    training_scaled = pd.DataFrame(sca.transform(new_training[cols_nonan]), columns=new_training[cols_nonan].columns)
-    validation_scaled = pd.DataFrame(sca.transform(new_validation[cols_nonan]), columns=new_validation[cols_nonan].columns)
-    test_scaled = pd.DataFrame(sca.transform(new_test[cols_nonan]), columns=new_test[cols_nonan].columns)
-
-    # Add back profid, wmoids
-    training_scaled['profid'] = new_training['profid']
-    validation_scaled['profid'] = new_validation['profid']
-    test_scaled['profid'] = new_test['profid']
-
-    training_scaled['wmoid'] = new_training['wmoid']
-    validation_scaled['wmoid'] = new_validation['wmoid']
-    test_scaled['wmoid'] = new_test['wmoid']
-
-    return training_scaled, validation_scaled, test_scaled
-
-def rescale_target(scaled_pred, unscaled_obs, type='Standard Scaler'):
-    "Rescale values to the original range of the data"
-    unscaled_obs =np.array(unscaled_obs).reshape(-1,1)
-    scaled_pred = np.array(scaled_pred).reshape(-1,1)
-
-    if type == 'StandardScaler':
-        scaler = preprocessing.StandardScaler().fit(unscaled_obs)
-    elif type == 'MinMaxScaler':
-        scaler = preprocessing.MinMaxScaler().fit(unscaled_obs)
-
-    temp = scaler.inverse_transform(scaled_pred)
-    rescaled = [y.item() for y in temp]
- 
-    return rescaled
-
-
-# # 3.0.2 Train RF model
-# var_predict = 'nitrate'
-
-# def train_RF(var_list, training, validation, test, ntrees=1000, max_feats = 'sqrt', scaler='MinMaxScaler', scale_target = True):
-#     """ 
-#     Main method to train the RF model.
-#     Scaling of datasets to between 0 and 1 is done internally within the method
-#     @param: 
-#         var_list: list of variables to use in the model
-#         training: training data unscaled, i.e. original range of values
-#         validation: validation data unscaled
-#         test: test data unscaled 
-#         ntrees: 1000 trees by default.
-
-#     @return:
-#         Mdl: trained RF model
-#         Mdl_MAE: Rescaled mean absolute error for training, validation, and test sets
-#         Mdl_IQR: Rescaled IQR for training, validation, and test sets
-#         DF_with_error: Rescaled dataframe with error metrics for the *TEST* set
+# def scale_features(df, training, type='StandardScaler'):
+#     """ Scale down glider dataset.
+#     @param: df: dataframe to scale
+#             type: type of scaler to use, 'StandardScaler' or 'MinMaxScaler'
 #     """
 
-#     Mdl = RandomForestRegressor(ntrees, max_features = max_feats, random_state = 0, bootstrap=False)
-#         #  max_features: use at most X features at each split (m~sqrt(total features)). ISSR.
-#         #  bootstrapping: *** Should be FALSE for geospatial data.
+#     cols_nonan = [col for col in df.columns if col not in ['profid', 'wmoid']] # all columns to remove nans
+#     newdf = df.dropna(axis=0, subset=cols_nonan).copy()
+#     new_training = training.dropna(axis=0, subset=cols_nonan).copy()
 
-#     # Drop NaN's without profid or wmoid
-#     cols_na = [col for col in training.columns if col not in ['profid', 'wmoid']]
-#     training_nona = training.dropna(axis=0, subset=cols_na)  # makes same length as training_scaled
-#     validation_nona = validation.dropna(axis=0, subset=cols_na)
-#     test_nona = test.dropna(axis=0, subset=cols_na)
+#     # Drop NaNs *EXCEPT* in the wmoid column, or else ship data is removed
 
-#     # Scale features using the specified 'type' for each subset of data
-#     # Method drops Nan's
-#     [training_scaled, validation_scaled, test_scaled] = scale_down_tvt(training_nona, validation, test, type=scaler)
+#     if type == 'StandardScaler':
+#         sca = preprocessing.StandardScaler().fit(new_training[cols_nonan])
 
-#     # if old way is correct:
-#     # training_scaled = scale_features(training, type=scaler)
-#     # validation_scaled = scale_features(validation, type=scaler)
-#     # test_scaled = scale_features(test, type=scaler)
+#     elif type == 'MinMaxScaler':
+#         sca = preprocessing.MinMaxScaler().fit(new_training[cols_nonan])
 
-#     # Create X Variables for each subset of data. Scale down. 
-#     X_training = training_scaled[var_list].to_numpy()
-#     X_validation = validation_scaled[var_list].to_numpy()
-#     X_test = test_scaled[var_list].to_numpy()
+#     df_scaled =  pd.DataFrame(sca.transform(newdf[cols_nonan]), columns=newdf[cols_nonan].columns)
+#     df_scaled['profid'] = newdf['profid']
+#     df_scaled['wmoid'] = newdf['wmoid']
 
-#     if scale_target == True:
-#         Y_training = training_scaled[var_predict].to_numpy()
-#         Y_validation = validation_scaled[var_predict].to_numpy()
-#         Y_test = test_scaled[var_predict].to_numpy()    ### Can also leave target nitrate unscaled. change test_scaled to test
-#     else:
-#         Y_training = training_nona[var_predict].to_numpy()
-#         Y_validation = validation_nona[var_predict].to_numpy()
-#         Y_test = test_nona[var_predict].to_numpy()    ### Can also leave target nitrate unscaled. change test_scaled to test
+#     return df_scaled
 
 
-#     # Train the model
-#     Mdl.fit(X_training, Y_training)
+# def scale_down_tvt(training, validation, test, type='StandardScaler'):
+#     """ 
+#     Scale features using 
+#     @param: df: dataframe to scale
+#             type: type of scaler to use, 'StandardScaler' or 'MinMaxScaler'
+#     """
+#     # Don't remove NaNs in wmoid since ship will have empty field
+#     cols_nonan = [col for col in training.columns if col not in ['profid', 'wmoid']] # all columns to remove nans
 
-#     # Estimate
-#     Y_pred_training = Mdl.predict(X_training)
-#     Y_pred_validation = Mdl.predict(X_validation)
-#     Y_pred_test = Mdl.predict(X_test)
+#     new_training = training.dropna(axis=0, subset=cols_nonan).copy()
+#     new_validation = validation.dropna(axis=0, subset=cols_nonan).copy()
+#     new_test = test.dropna(axis=0, subset=cols_nonan).copy()
 
-#     if scale_target == True:
-#         Y_pred_training = rescale_target(Y_pred_training, training_nona[var_predict], type=scaler) # Rescale the predicted nitrate
-#         Y_pred_validation = rescale_target(Y_pred_validation, training_nona[var_predict], type=scaler) # Rescale the predicted nitrate
-#         Y_pred_test = rescale_target(Y_pred_test, training_nona[var_predict], type=scaler) # Rescale the predicted nitrate
-#     # changed from rescale_var to rescale_target for using only the training scaler. 
+ 
+#     # Scaler is built *USING TRAINING DATA* and applied to all
+#     if type == 'StandardScaler':
+#         sca = preprocessing.StandardScaler().fit(new_training[cols_nonan])
 
+#     elif type == 'MinMaxScaler':
+#         sca = preprocessing.MinMaxScaler().fit(new_training[cols_nonan])
 
-#     # Create dataframe for the test set with depth --> 
-#     DF_with_error = test_nona.copy(); 
-#     DF_with_error = DF_with_error.reset_index(drop=True)
-#     observed_nitrate = DF_with_error[var_predict].to_numpy()
+#     # Scale down all using the training scaler
+#     training_scaled = pd.DataFrame(sca.transform(new_training[cols_nonan]), columns=new_training[cols_nonan].columns)
+#     validation_scaled = pd.DataFrame(sca.transform(new_validation[cols_nonan]), columns=new_validation[cols_nonan].columns)
+#     test_scaled = pd.DataFrame(sca.transform(new_test[cols_nonan]), columns=new_test[cols_nonan].columns)
 
-#     # Save new dataframe with test results
-#     DF_with_error['test_prediction'] = Y_pred_test
-#     DF_with_error['test_error'] = DF_with_error['test_prediction'] - observed_nitrate
-#     DF_with_error['test_relative_error'] = DF_with_error['test_error']/observed_nitrate
+#     # Add back profid, wmoids
+#     training_scaled['profid'] = new_training['profid']
+#     validation_scaled['profid'] = new_validation['profid']
+#     test_scaled['profid'] = new_test['profid']
 
-#     # Error metrics
-#     AE_RF_training = np.abs(Y_pred_training - training_nona[var_predict])
-#     IQR_RF_training = iqr(abs(AE_RF_training))
-#     r2_RF_training = r2_score(training_nona[var_predict], Y_pred_training)
+#     training_scaled['wmoid'] = new_training['wmoid']
+#     validation_scaled['wmoid'] = new_validation['wmoid']
+#     test_scaled['wmoid'] = new_test['wmoid']
 
-#     AE_RF_validation = np.abs(Y_pred_validation - validation_nona[var_predict])
-#     IQR_RF_validation = iqr(abs(AE_RF_validation))
-#     r2_RF_validation = r2_score(validation_nona[var_predict], Y_pred_validation)
+#     return training_scaled, validation_scaled, test_scaled
 
-#     AE_RF_test = np.abs(Y_pred_test - test_nona[var_predict])
-#     IQR_RF_test = iqr(abs(AE_RF_test))
-#     r2_RF_test = r2_score(test_nona[var_predict], Y_pred_test)
+# def rescale_target(scaled_pred, unscaled_obs, type='Standard Scaler'):
+#     "Rescale values to the original range of the data"
+#     unscaled_obs =np.array(unscaled_obs).reshape(-1,1)
+#     scaled_pred = np.array(scaled_pred).reshape(-1,1)
 
-#     Mdl_MAE = [np.nanmedian(abs(AE_RF_training)), np.nanmedian(abs(AE_RF_validation)), np.nanmedian(abs(AE_RF_test))]
-#     Mdl_IQR = [IQR_RF_training, IQR_RF_validation, IQR_RF_test]
-#     Mdl_r2 = [r2_RF_training, r2_RF_validation, r2_RF_test]
+#     if type == 'StandardScaler':
+#         scaler = preprocessing.StandardScaler().fit(unscaled_obs)
+#     elif type == 'MinMaxScaler':
+#         scaler = preprocessing.MinMaxScaler().fit(unscaled_obs)
 
-#     return [Mdl, Mdl_MAE, Mdl_IQR, Mdl_r2, DF_with_error]
+#     temp = scaler.inverse_transform(scaled_pred)
+#     rescaled = [y.item() for y in temp]
+ 
+#     return rescaled
 
