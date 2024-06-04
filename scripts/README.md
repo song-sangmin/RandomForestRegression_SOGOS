@@ -7,26 +7,26 @@ Paper submitted to to AMS Artifical Intelligence in Earth Sciences (AIES) journa
 
 To see the main steps of RFR model development, see:
 
-- [Main Training Notebook:](scripts/Training_RandomForest.ipynb) `./Training_RandomForest.ipynb`
+- [Main Training Notebook:](./Training_RandomForest.ipynb) `./Training_RandomForest.ipynb`
 
     - More analysis and troubleshooting figures in `./Analysis_RandomForest.ipynb`
 
 
 To see how the input data was processed, see:
 
-- [BGC-Argo Float Processing Notebook:](scripts/SG_Float_Processing.ipynb) `./SG_Float_Processing.ipynb`
-- [Seaglider Processing Notebook:](scripts/SG_Glider_Processing.ipynb) `./SG_Glider_Processing.ipynb`
-- [GO-SHIP Processing Notebook:](scripts/SG_Ship_Processing.ipynb) `./SG_Ship_Processing.ipynb`
+- [BGC-Argo Float Processing Notebook:](./SG_Float_Processing.ipynb) `./SG_Float_Processing.ipynb`
+- [Seaglider Processing Notebook:](./SG_Glider_Processing.ipynb) `./SG_Glider_Processing.ipynb`
+- [GO-SHIP Processing Notebook:](./SG_Ship_Processing.ipynb) `./SG_Ship_Processing.ipynb`
 
 
 To recreate figures from the AIES paper, see:
 
-- [Plotting Notebook:](scripts/Plots_AIES.ipynb) `./Plots_AIES.ipynb`
+- [Plotting Notebook:](./Plots_AIES.ipynb) `./Plots_AIES.ipynb`
 
 
 Updated Jun 04 2024
 
-<!-- ## Code Directory --`>
+## Code Directory
 
 
 ### Supporting Scripts
