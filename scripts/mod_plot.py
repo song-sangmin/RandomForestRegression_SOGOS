@@ -39,6 +39,7 @@ def my_params(size=16):
             'mathtext.bf':'STIXGeneral:bold'}
     return params
 
+model_list = ['Model_A', 'Model_B', 'Model_C', 'Model_D', 'Model_E', 'Model_F', 'Model_G']
 # %% Color Palettes
 
 # Make Model palettes (mod April 2024)
@@ -288,8 +289,252 @@ def argo_time_coverage(floatDF = floatDF, fsize=(10,5), fontsize=14):
 
 # %% RANDOM FOREST VALIDATION
 
+def kfold_KDE(data, model_list = model_list, textsize=14):
+    """
+    New KDE plot using all combined validation errors from K-Fold 
+    @param:     data        RF_validation output (cv_kfold.val_error)
+
+    """ 
+    tag = 'Predicted - Observed Nitrate'
+    var = 'val_error'; ymax=2.12
+    # ymax = 2.1
 
 
+    # Make Figure with 2 Subplots
+    fig, axs = plt.subplots(1, 2, figsize=(11,4), layout='constrained')
+    axs=axs.flatten()
+
+    for ax in axs[0:1]:
+        for mod in model_list[:]: 
+            RF = data[mod].values
+
+            # Add Gaussian KDE to estimate probability density function
+            x = np.linspace(RF.min(), RF.max(), 1000)
+            kde = scipy.stats.gaussian_kde(RF)
+
+            lw = 2; ls = 'solid'
+            if mod == 'Model_G':
+                lw=lw+1
+            ax.plot(x, kde(x), color=model_palettes[mod], linewidth=lw, linestyle=ls, label=mod[-1], alpha=0.6)
+
+        if var == 'val_error':
+            ax.set_xlim([-1.5, 1.5])
+            ax.set_ylim([0, ymax])
+
+        leg = ax.legend(fontsize=14, framealpha=1)
+        for legobj in leg.legendHandles:
+            legobj.set_linewidth(3.5)
+        
+
+    for ax in axs[1:]:
+        for mod in model_list[3:]: # ['Model_A', 'Model_G']: #
+            RF = data[mod].values
+
+            # Gaussian KDE
+            x = np.linspace(RF.min(), RF.max(), 1000)
+            kde = scipy.stats.gaussian_kde(RF)
+
+            lw = 2; ls = 'solid'
+            if mod == 'Model_G':
+                lw=lw+1
+            if mod in ['Model_D', 'Model_F']:
+                ls = '--'
+            plt.plot(x, kde(x), color=model_palettes[mod], linewidth=lw, linestyle = ls, label=mod[-1], alpha=0.6)
+
+        ax.set_xlim([-.19, .19])
+        ax.set_ylim([1.48, ymax])
+
+        # Legend
+        leg = plt.legend(fontsize=textsize, framealpha=1)
+        for legobj in leg.legendHandles:
+            legobj.set_linewidth(3.5)
+
+    umol_unit = (r'$\mathbf{[\mu} \mathregular{mol~kg} \mathbf{^{-1}]}$')
+
+
+    for ax in axs:
+        # Show float uncertainty and 0 line
+        ax.axvline(x=0.5, color='r', linestyle='dotted', linewidth=2, alpha=0.6, zorder=0)
+        ax.axvline(x=-0.5, color='r', linestyle='dotted', linewidth=2, alpha=0.6, zorder=0)
+        ax.vlines(0, ymin=0, ymax=3, colors='k', alpha=0.8, linewidth=2, linestyle='dotted', zorder=1)
+        # ax.set_ylim([0,ymax])
+        ax.grid(alpha=0.55, zorder=1)
+
+        ax.set_ylabel('Density')
+        ax.set_xlabel("Nitrate Error " + umol_unit)
+        ax.set_title('K-Fold Validation Errors', fontsize=textsize)
+
+    return ax
+
+
+# def kfold_boxplots(data, figsize=(8,4), fontsize=14):
+#     fig, ax = plt.subplots(figsize=(8,4))
+
+#     lw= 1.5
+#     bplot = ax.boxplot(data.values(), widths=0.65, vert=False, patch_artist=True,
+#                     medianprops = {'color':'k', 'linewidth':lw},
+#                     capprops= {'color':'k', 'linewidth':lw},
+#                     flierprops= {'color':'k', 'linewidth':lw},
+#                     boxprops = {'color':'k', 'linewidth':lw})
+#     ax.set_yticklabels([x[-1] for x in data.keys()])
+#     ax.grid(zorder=1, alpha=0.5)
+#     ax.invert_yaxis()
+#     ax.set_ylabel('Model')
+#     ax.set_xlabel('Fold Validation MAE [umol/kg]')
+
+#     colors = []
+#     for mdl in model_list:
+#         colors.append(model_palettes[mdl])
+
+#     for patch, color in zip(bplot['boxes'], colors):
+#         patch.set_facecolor(mpcolors.to_rgba(color, alpha=0.5))
+
+#     plt.show()
+#     return ax 
+
+def kfold_boxplots(data, bias_one, bias_two, figsize=(12, 6), modlist = ['Model D', 'Model_G'], textsize=14):
+    # Make Figure with 2 Subplots
+    fig, axs = plt.subplots(1, 2, figsize=figsize, layout='constrained', width_ratios=[1.5,1])
+    axs=axs.flatten()
+
+    for ax in axs[:1]:
+        
+        lw= 1.5
+        bplot = ax.boxplot(data.values(), widths=0.65, vert=False, patch_artist=True,
+                        medianprops = {'color':'k', 'linewidth':lw},
+                        capprops= {'color':'k', 'linewidth':lw},
+                        flierprops= {'color':'k', 'linewidth':lw},
+                        boxprops = {'color':'k', 'linewidth':lw})
+        ax.set_yticklabels([x[-1] for x in data.keys()])
+        ax.grid(zorder=1, alpha=0.5)
+        ax.invert_yaxis()
+        ax.set_ylabel('Model', fontsize=16)
+        ax.set_xlabel("Nitrate Error " + umol_unit)
+
+        colors = []
+        for mdl in model_list:
+            colors.append(model_palettes[mdl])
+
+        for patch, color in zip(bplot['boxes'], colors):
+            patch.set_facecolor(mpcolors.to_rgba(color, alpha=0.5))
+        # ax.axvline(x=0.5, color='r', linestyle='dotted', linewidth=2, alpha=0.6, zorder=0)
+
+    for ax in axs[1:]:
+        color_one = model_palettes[modlist[0]] # sns.color_palette("Purples")[3]
+        color_two = model_palettes[modlist[1]]
+
+
+        bplot_one = ax.boxplot(bias_one.values(), vert=False, showfliers=False, widths=0.6, 
+                            patch_artist=True, 
+                            medianprops= {'color':color_one, 'linewidth':2},
+                            capprops={'color':color_one, 'linewidth':1.5},
+                            whiskerprops={'color':color_one, 'linewidth':1.5},
+                            flierprops={'color':color_one, 'linewidth':1.5},
+                            boxprops = {'color':color_one, 'linewidth':1},
+                            zorder=2)
+        for patch, color in zip(bplot_one['boxes'], [color_one]*10):
+            patch.set_facecolor(mpcolors.to_rgba(color, alpha=0.4))
+
+
+        bplot_two = ax.boxplot(bias_two.values(), vert=False, showfliers=False, widths=0.35, 
+                            patch_artist=True, 
+                            medianprops= {'color':'k', 'linewidth':2},
+                            capprops={'color':color_two, 'linewidth':2},
+                            whiskerprops={'color':color_two, 'linewidth':2},
+                            flierprops={'color':color_two, 'linewidth':2},
+                            boxprops = {'color':'k', 'linewidth':1},
+                            zorder=3)
+        for patch, color in zip(bplot_two['boxes'], [color_two]*10):
+            patch.set_facecolor(mpcolors.to_rgba(color, alpha=0.4))
+
+        ax.invert_yaxis()
+        ax.axvline(x=0, color='k', linestyle='dotted', linewidth=3, alpha=0.4, zorder=0)
+        
+
+        labels = bias_one.keys()
+        ax.set_yticks(range(1, len(labels) + 1), labels, fontsize=textsize)
+        ax.set_ylabel("Depths [m]", fontsize=textsize)
+        ax.set_xlabel("Nitrate Error " + umol_unit, fontsize=textsize)
+        ax.set_xlim([-.99, .99])
+
+        # ax.set_title("Cross-Validation Errors", fontsize=textsize)
+
+        # ax.legend([bplot_one["boxes"][0], bplot_two["boxes"][0]], [mod_one[-1], mod_two[-1]], loc='lower right', fontsize=15)
+        ax.grid(axis='x', zorder=1, alpha=0.4)
+
+        ax.axvline(x=0.5, color='r', linestyle='dotted', linewidth=2, alpha=0.6, zorder=0)
+        ax.axvline(x=-0.5, color='r', linestyle='dotted', linewidth=2, alpha=0.6, zorder=0)
+    return ax
+
+def loo_boxplots(data, figsize=(8,4), textsize=14, lw=1.5):
+    """ 
+    @param  data:    RF_loo output (cv_kfold.MAEs
+            lw:     linewidth of boxplot
+    )"""
+    fig, ax = plt.subplots(figsize=figsize)
+
+    bplot = ax.boxplot(data.values(), widths=0.65, vert=False, patch_artist=True,
+                    medianprops = {'color':'k', 'linewidth':lw},
+                    capprops= {'color':'k', 'linewidth':lw},
+                    flierprops= {'color':'k', 'linewidth':lw},
+                    boxprops = {'color':'k', 'linewidth':lw})
+    ax.set_yticklabels([x[-1] for x in data.keys()])
+    ax.grid(zorder=1, alpha=0.5)
+    ax.invert_yaxis()
+    ax.set_ylabel('Model')
+    ax.set_xlabel('Fold Validation MAE [umol/kg]')
+
+    colors = []
+    for mdl in model_list:
+        colors.append(model_palettes[mdl])
+
+    for patch, color in zip(bplot['boxes'], colors):
+        patch.set_facecolor(mpcolors.to_rgba(color, alpha=0.5))
+
+    return ax
+
+def loo_boxplots_wmodot(data, data_metrics, modlist = ['Model_D', 'Model_G'], figsize=(8,4), textsize=14, lw=1.5):
+    """ 
+    @param  data:               RF_loo output (cvloo)
+            data_metrics:       RF_modelmetrics output (cvloo_metrics)
+            lw:                 linewidth of boxplot
+    )"""
+    data = {k: data[k] for k in modlist}
+    fig, ax = plt.subplots(figsize=(7,4))
+
+    lw= 1.5
+    bplot = ax.boxplot(data.values(), widths=0.65, vert=False, patch_artist=True,
+                    medianprops = {'color':'k', 'linewidth':lw},
+                    capprops= {'color':'k', 'linewidth':lw},
+                    flierprops= {'color':'k', 'linewidth':lw},
+                    boxprops = {'color':'k', 'linewidth':lw})
+    ax.set_yticklabels([x[-1] for x in data.keys()])
+
+    ax.grid(axis='x', zorder=1, alpha=0.5)
+    ax.set_ylabel('Model')
+    ax.set_xlabel('Spatial LOO MAE ' + umol_unit)
+    ax.set_xticks([.2, .3, .4, .5, .6, .7])
+
+
+    mod_one = modlist[0]
+    mod_two = modlist[1]
+
+    colors = [model_palettes[mod_one], model_palettes[mod_two]]
+    for patch, color in zip(bplot['boxes'], colors):
+        patch.set_facecolor(mpcolors.to_rgba(color, alpha=0.2))
+
+    wmos = [x for x in wmoids if x != 5906030] 
+    for wmo in wmos: 
+            ax.scatter(data_metrics.at[wmo,mod_one],1, color=wmo_colors[wmo], s = 40, label= str(wmo)[-4:], zorder=3)
+            ax.scatter(data_metrics.at[wmo,mod_two],2, color=wmo_colors[wmo], s=40, zorder=3)
+
+    ax.legend(loc='upper right', fontsize=14)
+    ax.set_xlim([.17, .85])
+    ax.invert_yaxis()
+
+    return ax
+
+        
 # %% RANDOM FOREST TESTING
 
 def compare_resolution(df_glid = df_660, fsize=(8,6), textsize=16, minday=129, maxday=161, maxpres=750, dateformat=True, vertical=True):
@@ -405,6 +650,7 @@ def plt_glider_sections(preslim=900, fsize=(12,12), vlist = ['sigma0', 'spice', 
     xt = [120, 140, 160, 180, 200]
     if dateformat: 
         for ax in axs[3,0:2]:
+            ax.set_xticks(xt)
             # ax.set_xticklabels(str(sg.ytd2datetime(k))[-5:] for k in xt)
             ax.set_xticklabels(['1-May', '21-May', '10-Jun', '30-Jun', '20-Jul'])
     else:

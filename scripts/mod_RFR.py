@@ -47,9 +47,29 @@ RF_loo_WMO = pd.read_csv(dir + 'loo_metrics_byWMO.csv')
 RF_kfold = pd.read_csv(dir + 'kfold_metrics_byModel.csv')
 
 # NN Comparisos
-RF_pred_6030 = pd.read_csv('../working-vars/RF-training/mlresult_sgfloat_allpreds_full.csv')
+# RF_pred_6030 = pd.read_csv('../working-vars/RF-training/mlresult_sgfloat_allpreds_full.csv')
+RF_pred_6030 = RF_test['Model_G']
+RF_pred_6030 = RF_pred_6030[RF_pred_6030.yearday<205]
 ESPER_pred = pd.read_csv('../working-vars/ESPER-prediction/wmo5906030_df_with_esper_dec2023.csv')
 CANYON_pred = pd.read_csv('../working-vars/CANYON-prediction/wmo5906030_df_with_canyon_dec2023.csv')
+
+# # After running CANYON and ESPER, make DataFrames
+# Originally from Training_RandomForest.ipynb
+# dir = '../working-vars/'
+# sogos_canyon = pd.read_csv(dir + 'CANYON-prediction/wmo5906030_MATLAB_canyon_pred_nov2023.csv')
+# sogos_esper = pd.read_csv(dir + 'ESPER-prediction/wmo5906030_MATLAB_esper_pred_nov2023.csv')
+
+# for var in ['pressure', 'yearday', 'nitrate']:
+#     sogos_canyon[var] = np.array(RF_test['Model_G'][var])
+#     sogos_esper[var] = np.array(RF_test['Model_G'][var])
+
+# sogos_canyon['prediction_error'] = sogos_canyon.prediction - sogos_canyon.nitrate
+# sogos_canyon['pred_relative_error'] = sogos_canyon.prediction_error/sogos_canyon.nitrate
+
+# sogos_esper['prediction_error'] = sogos_esper.prediction - sogos_esper.nitrate
+# sogos_esper['pred_relative_error'] = sogos_esper.prediction_error/sogos_esper.nitrate
+
+
 
 # %% Methods for preparing ML Data
 
