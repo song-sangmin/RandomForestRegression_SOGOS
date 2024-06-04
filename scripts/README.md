@@ -17,11 +17,19 @@ To see how the input data was processed, see:
 - [BGC-Argo Float Processing Notebook:](scripts/SG_Float_Processing.ipynb) `./SG_Float_Processing.ipynb`
 - [Seaglider Processing Notebook:](scripts/SG_Glider_Processing.ipynb) `./SG_Glider_Processing.ipynb`
 - [GO-SHIP Processing Notebook:](scripts/SG_Ship_Processing.ipynb) `./SG_Ship_Processing.ipynb`
+
+
+To recreate figures from the AIES paper, see:
+
+- [Plotting Notebook:](scripts/Plots_AIES.ipynb) `./Plots_AIES.ipynb`
+
+
 Updated Jun 04 2024
 
-<!-- ## Code Directory -->
+<!-- ## Code Directory --`>
 
-## Modules
+
+### Supporting Scripts
 
 Major functions and custom classes are stored in modules. 
 
@@ -39,7 +47,20 @@ The `mod_RFR.py` holds the important class objects used in `Training_RandomFores
                 mod_plot      as sgplot         Used to define common plotting parameters; can reproduce all paper figs
 
 
-## Naming Conventions
+
+Other scripts are used for troubleshooting or archiving additional information. \
+(Generally not needed for non-author use.)
+
+- *Troubleshooting Scripts*
+
+				
+				Data_Log.ipynb 					See how we got to different datasets. 
+												Better to import variables from mod_main or mod_RFR. 
+				Plots_AIES.ipynb 
+
+
+
+### Variable Naming Conventions
 
 - *Glider:*    
 

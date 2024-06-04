@@ -1,9 +1,9 @@
 # Random forest regression on multi-platform in-situ ocean observations
 
-Paper submitted to to AMS Artifical Intelligence in Earth Sciences (AIES) journal May 2024, pending review. - [Link to pre-print](https://doi.org/10.22541/essoar.171707849.91867565/v1)
+Paper submitted to AMS Artifical Intelligence in Earth Sciences (AIES) May 2024 \
+[Link to pre-print](https://doi.org/10.22541/essoar.171707849.91867565/v1)
 
-Contact: Song Sangmin <sangsong@uw.edu>
-
+Contact: Song Sangmin <sangsong@uw.edu> \
 University of Washington, School of Oceanography
 
 Last updated: May 30 2024
@@ -19,34 +19,27 @@ Given increasing observational coverage of the global oceans by Argo floats and 
 
 
 
-## RFR Training Notebooks
+## RFR Notebooks
 
 <!-- Three main notebooks describe the (1) Random Forest model development, (2) application to ocean data and performance evaluation, followed by (3) scientific analysis of the output. 
  -->
 
-[Main Training Notebook:](scripts/Training_RandomForest.ipynb)
+[Main Training Notebook](scripts/Training_RandomForest.ipynb) `scripts/Training_RandomForest.ipynb`
 
 - Demonstrates our machine learning approach to ocean nutrient regression.
+- Specifically, we go through these main steps: 
 
-- Specifically, our work will go through these main steps: 
-
-                1) Preparing BGC-Argo data for our model training data.
-                2) Training the model on available BGC-Argo and shipboard data. 
-                3) Validating different models to select optimal parameters; Cross-validating to minimize overfitting.
-                4) Testing the RFR for error estimation; comparing with other algorithms
-                5) Applying Seaglider inputs to predict new nitrate distributions. 
-
-
-To install the environment `mlsogos`, use the file `./binder/environment.yml`.
-
-<!-- 2. Random Forest Analysis: `scripts/Analysis_RandomForest.ipynb`
-
-- Here, we
-
--  -->
+    1) Preparing BGC-Argo data for our model training data.
+    2) Training the model on available BGC-Argo and shipboard data. 
+    3) Validating different models to select optimal parameters; Cross-validating to minimize overfitting.
+    4) Testing the RFR for error estimation; comparing with other algorithms
+    5) Applying Seaglider inputs to predict new nitrate distributions. 
 
 
-## Folder Directory
+To run locally, install the environment `mlsogos` using the file `./binder/environment.yml`.
+
+
+### Folder Directory
 
 - `scripts/` : code for analysis
 - `data/` : float, ship, and glider data as downloaded
@@ -55,28 +48,21 @@ To install the environment `mlsogos`, use the file `./binder/environment.yml`.
 
 
 
-## Data Sources
+### Data Sources
 
 
-- Description of glider data variables are in `Seaglider_DataGuide.pdf`
+- Description of glider data variables are in `./data/Seaglider_DataGuide.pdf`
 - Description of Argo float and ship are in first paper from SOGOS program: [Link to Dove et. al. (2021)](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2021JC017178)
 
 
-The SOGOS data for Seagliders SG659 and SG660 can be accessed through \citet{balwada_2023_8361656}; DOI 10.5281/zenodo.8361656. Argo float data were collected and made freely available by the International Argo Program and the national programs that contribute to it (https://argo.ucsd.edu, https://www.ocean-ops.org). The Argo Program is part of the Global Ocean Observing System; Argo float data and metadata from Global Data Assembly Centre (\citet{argo2021_Argo}; DOI 10.17882/42182). Shipboard data were collected and made publicly available by the International Global Ship-based Hydrographic Investigations Program (GO-SHIP; http://www.go-ship.org/) and the national programs that contribute to it. The satellite altimetry data are freely available through the E.U. Copernicus Marine Environment Monitoring Service (CMEMS; DOI 10.48670/moi-00148), and the value-added FSLE product is provided by AVISO (https://www.aviso.altimetry.fr/en/data/products/value-added-products/fsle-finite-size-lyapunov-exponents.html; DOI 10.24400/527896/a01-2022.002). MODIS-Aqua satellite data are hosted by NOAA and provided through the NASA Ocean Biology Processing Group (https://coastwatch.pfeg.noaa.gov/erddap/griddap/erdMH1par08day.html). 
+The SOGOS data for Seagliders SG659 and SG660 can be accessed through [Balwada 2023](https://doi.org/10.5281/zenodo.8361656). Argo float data were collected and made freely available by the International Argo Program and the national programs that contribute to it (https://argo.ucsd.edu, https://www.ocean-ops.org). The Argo Program is part of the Global Ocean Observing System; Argo float data and metadata from Global Data Assembly Centre ([Argo 2021](https://doi.org/10.17882/42182)). Shipboard data were collected and made publicly available by the International Global Ship-based Hydrographic Investigations Program (GO-SHIP; http://www.go-ship.org/) and the national programs that contribute to it. The satellite altimetry data are freely available through the E.U. Copernicus Marine Environment Monitoring Service (CMEMS; DOI 10.48670/moi-00148), and the value-added FSLE product is provided by AVISO (https://www.aviso.altimetry.fr/en/data/products/value-added-products/fsle-finite-size-lyapunov-exponents.html; DOI 10.24400/527896/a01-2022.002). MODIS-Aqua satellite data are hosted by NOAA and provided through the NASA Ocean Biology Processing Group (https://coastwatch.pfeg.noaa.gov/erddap/griddap/erdMH1par08day.html). 
 
 
-Global Ocean Gridded L 4 Sea Surface Heights And Derived Variables Reprocessed 1993 Ongoing:
 
-- [Link to altimetry (ADT, EKE) data:](https://data.marine.copernicus.eu/product/SEALEVEL_GLO_PHY_L4_MY_008_047/download
-)
+- [Link to altimetry (ADT, EKE) data:](https://data.marine.copernicus.eu/product/SEALEVEL_GLO_PHY_L4_MY_008_047/download) (Global Ocean Gridded L 4 Sea Surface Heights And Derived Variables Reprocessed 1993 Ongoing)
 - [Altimetry product doi: (https://doi.org/10.48670/moi-00148)
-
 - [Link to float data](https://uwnetid-my.sharepoint.com/:f:/g/personal/sangsong_uw_edu/Es-ESkVfIlpHhpFq7o5LTaoBtqv6pWj6rntxMyXieLEq8A?e=FeRRjs)
-
-<!-- - [Argo ERDDAP Data Server](http://www.argodatamgt.org/Access-to-data/ERDDAP-data-server) -->
-
-- [Link to ship data](https://uwnetid-my.sharepoint.com/:f:/g/personal/sangsong_uw_edu/ErLtPwS6pdZClgo0Flp9lq8Bz73FRmUlhR2zf329gDH-3w?e=hCzidh)
-- [GO-SHIP I6 Cruise Line Bottle Data](https://cchdo.ucsd.edu/cruise/325020190403)
+- [Link to GO-SHIP I06 Bottle Data](https://cchdo.ucsd.edu/cruise/325020190403)
 
 
 
