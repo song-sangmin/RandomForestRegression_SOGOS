@@ -5,23 +5,29 @@ Paper submitted to to AMS Artifical Intelligence in Earth Sciences (AIES) journa
 
 ## Notebooks
 
-To see the main steps of RFR model development, see:
+To see the main steps of RFR model development:
 
-- [Main Training Notebook:](./Training_RandomForest.ipynb) `./Training_RandomForest.ipynb`
-
+- [Main Training Notebook:](./Main_RandomForest.ipynb) `./Main_RandomForest.ipynb`
     - More analysis and troubleshooting figures in `./Analysis_RandomForest.ipynb`
 
 
-To see how the input data was processed, see:
+To recreate figures from the AIES paper:
+
+- [Plotting Notebook:](./Analysis_Plots.ipynb) `./Analysis_Plots.ipynb`
+
+
+To follow further analysis steps using the RFR outputs:
+
+- [Mixed Layer Notebook:](./Analysis_MixedLayerVariability.ipynb) `./Analysis_MixedLayerVariability.ipynb`
+
+- [Wavelet Analysis Notebook:](./Analysis_Wavelet.ipynb) `./Analysis_Wavelet.ipynb`
+
+
+To see how the input data was processed:
 
 - [BGC-Argo Float Processing Notebook:](./SG_Float_Processing.ipynb) `./SG_Float_Processing.ipynb`
 - [Seaglider Processing Notebook:](./SG_Glider_Processing.ipynb) `./SG_Glider_Processing.ipynb`
 - [GO-SHIP Processing Notebook:](./SG_Ship_Processing.ipynb) `./SG_Ship_Processing.ipynb`
-
-
-To recreate figures from the AIES paper, see:
-
-- [Plotting Notebook:](./Plots_AIES.ipynb) `./Plots_AIES.ipynb`
 
 
 Updated Jun 04 2024
@@ -51,12 +57,12 @@ The `mod_RFR.py` holds the important class objects used in `Training_RandomFores
 Other scripts are used for troubleshooting or archiving additional information. \
 (Generally not needed for non-author use.)
 
-- *Troubleshooting Scripts*
+- *Supplementary Scripts*
 
 				
-				Data_Log.ipynb 					See how we got to different datasets. 
-												Better to import variables from mod_main or mod_RFR. 
-				Plots_AIES.ipynb 
+				Supplementary_RandomForest.ipynb  Additional RFR figures
+                Supplementary_Data_Log.ipynb 	  Notes on different data streams 
+
 
 
 

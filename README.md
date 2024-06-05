@@ -23,8 +23,9 @@ Given increasing observational coverage of the global oceans by Argo floats and 
 
 <!-- Three main notebooks describe the (1) Random Forest model development, (2) application to ocean data and performance evaluation, followed by (3) scientific analysis of the output. 
  -->
+See folder `./scripts`. 
 
-[Main Training Notebook](scripts/Training_RandomForest.ipynb) `scripts/Training_RandomForest.ipynb`
+[Main Training Notebook](scripts/Main_RandomForest.ipynb) `scripts/Main_RandomForest.ipynb`
 
 - Demonstrates our machine learning approach to ocean nutrient regression.
 - Specifically, we go through these main steps: 
@@ -39,13 +40,13 @@ Given increasing observational coverage of the global oceans by Argo floats and 
 To run locally, install the environment `mlsogos` using the file `./binder/environment.yml`.
 
 
-### Folder Directory
+<!-- ### Folder Directory
 
 - `scripts/` : code for analysis
 - `data/` : float, ship, and glider data as downloaded
 - `working-vars/` : calculated output variables from analysis
 - `images/` : final output figures
-
+ -->
 
 
 ### Data Sources
