@@ -215,7 +215,7 @@ def study_region_eke(df_float = sgfloat, df_glid1  = df_659, df_glid2 = df_660, 
 # %% ARGO MAP
 # Download fronts of the Antarctic Circumpolar Current
 
-def training_float_map(floatDF = floatDF, shipDF = shipDF, fsize = (10,8), fontsize=16):
+def training_float_map(floatDF = floatDF, shipDF = shipDF, ax=None, fsize = (10,8), fontsize=16):
     """
     """
     PF = pd.read_csv('../data/ACC_fronts/PF.csv', header=None)
@@ -223,9 +223,9 @@ def training_float_map(floatDF = floatDF, shipDF = shipDF, fsize = (10,8), fonts
     for csv in [PF, SIF]:
         csv.columns = ['lon', 'lat']
 
-
-    fig = plt.figure(figsize=fsize)
-    ax=plt.gca()
+    if ax == None:
+        fig = plt.figure(figsize=fsize)
+        ax=plt.gca()
 
     for wmo in wmoids[wmoids!=5906030]:
         ax.plot(floatDF[floatDF.wmoid==wmo].lon,floatDF[floatDF.wmoid==wmo].lat,
@@ -265,11 +265,13 @@ def training_float_map(floatDF = floatDF, shipDF = shipDF, fsize = (10,8), fonts
     return ax 
 
 
-def argo_time_coverage(floatDF = floatDF, fsize=(10,5), fontsize=14):
+def argo_time_coverage(floatDF = floatDF, fsize=(10,5), fontsize=14, ax=None):
     sns.set_palette(wmo_colors.values())
 
-    fig = plt.figure(figsize=fsize)
-    ax = plt.gca()
+    if ax == None:
+        fig = plt.figure(figsize=fsize)
+        ax = plt.gca()
+    
     pd.DataFrame({k: v for k, v in floatDF.groupby('wmoid').yearday}).plot.hist(stacked=True, ax=ax, zorder=3, alpha=0.8, linewidth=1, edgecolor='k') 
     ax.legend([str(wmo)[-4:] for wmo in wmoids], loc='upper left', fontsize=fontsize)
 
@@ -282,6 +284,31 @@ def argo_time_coverage(floatDF = floatDF, fsize=(10,5), fontsize=14):
     ax.grid(axis='y', alpha=0.5, zorder=0)
 
     return ax
+
+# %% BASIC SECTION PLOTS
+
+def time_pres_section(data, var, figsize = (10,5), ax = None, cmap='RdBu_r', vlims = None, xlims=None, ylims=None):
+    if ax == None:
+        fig  = plt.figure(figsize=(12,6), tight_layout=True)
+        ax = plt.gca()
+
+    if vlims == None:
+        sca = ax.scatter(data.yearday, data.pressure, c=data[var], cmap=cmap, s=250, marker='s')
+    else:
+        sca = ax.scatter(data.yearday, data.pressure, c=data[var], cmap=cmap, s=250, marker='s', vmin=vlims[0], vmax=vlims[1])
+
+    ax.invert_yaxis()
+    ax.set_ylabel('Pressure')
+    ax.set_xlabel('Yearday')
+
+    if xlims != None:
+        ax.set_xlim(xlims)
+    if ylims != None:
+        ax.set_ylim(ylims)
+    
+    return ax
+
+
 
 # %% RANDOM FOREST TRAINING
 
@@ -367,7 +394,10 @@ def kfold_KDE(data, model_list = model_list, textsize=14):
     return ax
 
 
-# def kfold_boxplots(data, figsize=(8,4), fontsize=14):
+# def kfold_bplot(data, figsize=(8,4), fontsize=14):
+    """ 
+    Single version (left panel)
+    """
 #     fig, ax = plt.subplots(figsize=(8,4))
 
 #     lw= 1.5

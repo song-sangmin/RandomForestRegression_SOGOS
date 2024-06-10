@@ -186,6 +186,7 @@ def make_diveav(df, thresh=0.005, mld_lim=[8,12]):
     print('number of profiles with no 10m data: ', no10counter)
     print('approx # of obs within profile that were averaged for final mlp: ', np.mean(lenrangesig))
     print('number of nan mlds even where 10m exists: ', nomld)
+    
     return newDF, nanprofids
 
 
@@ -208,7 +209,7 @@ def get_track_eke(dav_plat, aviso, buffer=0.04, daily=False):
 
     """
     dates = sg.ytd2datetime(dav_plat.yearday)
-    avg_aviso = aviso.mean(dim='time') # if using daily=false
+    
 
     track_eke = []      # initialize array to return, eke for each day
     for idx, date in enumerate(dates): 
@@ -221,9 +222,11 @@ def get_track_eke(dav_plat, aviso, buffer=0.04, daily=False):
             day_aviso = aviso.sel(time=date, method='nearest')
             point = day_aviso.eke.interp(latitude=lx, longitude=ly, method = 'linear')
         else:
+            avg_aviso = aviso.mean(dim='time') # average over whole deployment
             point = avg_aviso.eke.interp(latitude=lx, longitude=ly, method = 'linear')
 
         track_eke.append(point.values.tolist())
+    
     return track_eke
 
 def get_track_FSLE(diveav, FSLE, buffer=0.04):

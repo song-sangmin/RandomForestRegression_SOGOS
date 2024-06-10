@@ -20,8 +20,10 @@ import mod_DFproc as dfproc
 # sg660 = pd.read_csv('../data/glider/df_660_tsO2corr_nonandrop_0131.csv')
 
 # Input glider data, which has already been quality controlled. 
-sg659 = pd.read_csv('../data/glider/sg659_tsO2corr.csv', index_col=0)
-sg660 = pd.read_csv('../data/glider/sg660_tsO2corr.csv', index_col=0)
+# sg659 = pd.read_csv('../data/glider/sg659_tsO2corr.csv', index_col=0)
+# sg660 = pd.read_csv('../data/glider/sg660_tsO2corr.csv', index_col=0)
+sg659 = pd.read_csv('../data/glider/df_659_tsO2corr_nonandrop_0131.csv')
+sg660 = pd.read_csv('../data/glider/df_660_tsO2corr_nonandrop_0131.csv')
 
 # Glider data
 # df_659 = pd.read_csv('../data/glider/mldata_sg659.csv')
@@ -46,6 +48,14 @@ altimetry = xr.open_dataset('../data/satellite/cmems_obs-sl_glo_phy-ssh_my_allsa
 altimetry['eke'] = 0.5*np.sqrt(altimetry.ugosa**2 + altimetry.vgosa**2)
 
 FSLE =  xr.open_dataset('../data/satellite/FSLE_sogos.nc')
+
+# Front data:
+# PF = pd.read_csv('../data/ACC_fronts/PF.csv', header=None)
+# SAF = pd.read_csv('../data/ACC_fronts/SAF.csv', header=None)
+# SIF = pd.read_csv('../data/ACC_fronts/SIF.csv', header=None)
+# STF = pd.read_csv('../data/ACC_fronts/STF.csv', header=None)
+# for csv in [PF, SIF]:
+#     csv.columns = ['lon', 'lat']
 
 # # EKE data bounds
 # datestart='2019-04-30'
@@ -101,7 +111,12 @@ def print_dict(dict):
 
 def print_sorted(dict):
     print("\n".join("{}  \t{}".format(k, v) for k, v in sorted(dict.items(), key=lambda x:x[1]))) 
-    
+
+def print_stats(vals):
+    print('mean: ' + str(np.mean(vals)))
+    print('median: ' + str(np.nanmedian(vals.T)))
+    print('std: ' + str(np.std(vals)))
+
 
 # %% Add information on vertical resolution
 

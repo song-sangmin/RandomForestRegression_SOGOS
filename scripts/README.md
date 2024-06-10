@@ -8,7 +8,6 @@ Paper submitted to to AMS Artifical Intelligence in Earth Sciences (AIES) journa
 To see the main steps of RFR model development:
 
 - [Main Training Notebook:](./Main_RandomForest.ipynb) `./Main_RandomForest.ipynb`
-    - More analysis and troubleshooting figures in `./Analysis_RandomForest.ipynb`
 
 
 To recreate figures from the AIES paper:
@@ -19,7 +18,6 @@ To recreate figures from the AIES paper:
 To follow further analysis steps using the RFR outputs:
 
 - [Mixed Layer Notebook:](./Analysis_MixedLayerVariability.ipynb) `./Analysis_MixedLayerVariability.ipynb`
-
 - [Wavelet Analysis Notebook:](./Analysis_Wavelet.ipynb) `./Analysis_Wavelet.ipynb`
 
 
@@ -57,11 +55,10 @@ The `mod_RFR.py` holds the important class objects used in `Training_RandomFores
 Other scripts are used for troubleshooting or archiving additional information. \
 (Generally not needed for non-author use.)
 
-- *Supplementary Scripts*
+- *Supplementary*
 
-				
-				Supplementary_RandomForest.ipynb  Additional RFR figures
-                Supplementary_Data_Log.ipynb 	  Notes on different data streams 
+				Supplement_RandomForest.ipynb   Additional RFR figures
+                Supplement_Data_Log.ipynb 	    Notes on different data streams 
 
 
 
@@ -90,3 +87,5 @@ Two phases of processing were developed externally in MATLAB:
 - ESPER-Mixed Prediction ([Carter et al. 2021](https://doi-org.offcampus.lib.washington.edu/10.1002/lom3.10461))
 - CANYON-B Prediction ([Bittig et al. 2018](https://doi.org/10.3389/fmars.2018.00328))
 - ACC Front locations courtesy of [Sauve et al. 2023](https://doi.org/10.1029/2023JC019815)
+
+To process Argo data, we use code courtesy of the [GO-BGC Toolbox](https://github.com/go-bgc/workshop-python/blob/main/GO_BGC_Workshop_Python_tutorial.ipynb) (Ethan Campbell 2021).
