@@ -215,6 +215,12 @@ def study_region_eke(df_float = sgfloat, df_glid1  = df_659, df_glid2 = df_660, 
 # %% ARGO MAP
 # Download fronts of the Antarctic Circumpolar Current
 
+# In Analysis_Plots, we use: 
+# fig, axs = plt.subplots(2,1, figsize=(8,6), constrained_layout='True')
+# sgplot.training_float_map(floatDF, fsize=(10,8), ax = axs[0]);
+# sgplot.argo_time_coverage(floatDF, fsize=(8,4), fontsize=12, ax=axs[1]);
+
+
 def training_float_map(floatDF = floatDF, shipDF = shipDF, ax=None, fsize = (10,8), fontsize=16):
     """
     """
