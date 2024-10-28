@@ -33,7 +33,7 @@ df_660 = pd.read_csv('../working-vars/RF-glider/mlpred_sg660_G.csv', index_col=0
 dav_659 = pd.read_csv('../data/glider/dav_659_EKEPAR.csv', index_col=0)  
 dav_660 = pd.read_csv('../data/glider/dav_660_EKEPAR.csv', index_col=0)
 
-# Float data: 
+# Float data: (as in may 24)
 floatDF = pd.read_csv('../data/bgc-argo/mldata_floatDF_qc.csv', index_col=0)
 sgfloat = floatDF[(floatDF.yearday<205) & (floatDF.wmoid==5906030)]
 # Full float 6030, for long time series MLD
